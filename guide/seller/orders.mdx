@@ -1,0 +1,78 @@
+---
+title: "Order fulfillment"
+description: "View and process incoming customer orders"
+---
+
+The orders page shows every purchase made from your store. You can filter by status and advance each order through the fulfillment pipeline.
+
+## Route
+
+`/vendedor/pedidos` — requires role `seller` or `admin`.
+
+## Quick-stats bar
+
+Four summary cards appear above the order table:
+
+| Card | Description |
+|---|---|
+| **Total Pedidos** | All orders ever placed with your store |
+| **Preparando** | Orders currently being prepared |
+| **Enviados** | Orders dispatched to the customer |
+| **Entregados** | Orders confirmed as delivered |
+
+## Order statuses
+
+Every order moves through three sequential statuses:
+
+| Status | Label | Color |
+|---|---|---|
+| `preparing` | Preparando | Yellow |
+| `shipped` | Enviado | Blue |
+| `delivered` | Entregado | Green |
+
+Orders are created in the `preparing` state when a customer completes checkout.
+
+## Order table columns
+
+| Column | Description |
+|---|---|
+| **Pedido** | Order ID prefixed with `#` |
+| **Cliente** | Customer name resolved from the users list |
+| **Fecha** | Order date in `DD MMM YYYY` format |
+| **Items** | Number of line items in the order |
+| **Total** | Order total in COP |
+| **Estado** | Status badge with matching icon |
+| **Acciones** | Advancement button (context-sensitive) |
+
+## Filtering orders
+
+Use the filter buttons above the table to narrow the list:
+
+- **Todos** — all orders regardless of status
+- **Preparando** — only orders in the preparing state
+- **Enviados** — only shipped orders
+- **Entregados** — only delivered orders
+
+## Advancing an order
+
+<Steps>
+  <Step title="Locate the order">
+    Find the order in the table. Use the status filter to focus on `Preparando` orders if you have a large backlog.
+  </Step>
+  <Step title="Mark as shipped">
+    For a `preparing` order, click **Marcar Enviado** in the Actions column. The status updates to `shipped` and a success notification appears.
+  </Step>
+  <Step title="Mark as delivered">
+    Once the customer receives the package, click **Marcar Entregado**. The order moves to `delivered` and the action button is replaced with the label **Completado**.
+  </Step>
+</Steps>
+
+<Info>
+Status changes are reflected immediately in the admin overview and in the customer's order history. You cannot reverse a status transition — contact an admin if you need to correct a mistake.
+</Info>
+
+## Empty state
+
+If no orders match the active filter, the table shows an empty state with the message:
+- "No tienes pedidos aún" (when the **Todos** filter is active)
+- "No hay pedidos en estado '…'" (for a specific status filter)

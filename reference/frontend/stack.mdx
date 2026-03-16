@@ -1,0 +1,107 @@
+---
+title: "Frontend stack"
+description: "Technologies, dependencies, and build tooling for the React frontend"
+---
+
+# Frontend stack
+
+The D&D Textil frontend is a single-page application built with React 18, bundled by Vite, and styled entirely with Tailwind CSS.
+
+## npm scripts
+
+```bash
+npm run dev      # Start dev server on port 3001
+npm run build    # Production build
+npm run preview  # Preview production build locally
+```
+
+<Note>
+The Vite dev server runs on port **3001** by default (`strictPort: false`), so it will find the next available port if 3001 is busy. A proxy is configured to forward `/uploads` requests to the backend at `http://localhost:8081`.
+</Note>
+
+## Dependencies
+
+| Package | Version | Purpose |
+|---------|---------|----------|
+| `react` | ^18.3.1 | UI framework |
+| `react-dom` | ^18.3.1 | React DOM renderer |
+| `react-router-dom` | ^6.22.0 | Client-side routing |
+| `framer-motion` | ^11.0.5 | Animations and transitions |
+| `react-hook-form` | ^7.71.1 | Form state and validation |
+| `@hookform/resolvers` | ^5.2.2 | Schema validation adapters (Zod) |
+| `zod` | ^4.3.6 | TypeScript-first schema validation |
+| `react-icons` | ^5.0.1 | Icon library (Font Awesome, etc.) |
+| `recharts` | ^3.7.0 | Charts for admin analytics dashboards |
+
+## Dev dependencies
+
+| Package | Version | Purpose |
+|---------|---------|----------|
+| `vite` | ^5.4.11 | Build tool and dev server |
+| `@vitejs/plugin-react` | ^4.3.4 | React fast-refresh and JSX transform |
+| `tailwindcss` | ^3.4.1 | Utility-first CSS framework |
+| `postcss` | ^8.4.35 | CSS transformation pipeline |
+| `autoprefixer` | ^10.4.17 | Vendor prefix injection |
+
+## Vite configuration
+
+```javascript vite.config.js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { fileURLToPath, URL } from 'node:url'
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 3001,
+    strictPort: false,
+    open: true,
+    allowedHosts: true,
+    proxy: {
+      '/uploads': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      }
+    }
+  },
+})
+```
+
+## Tailwind CSS setup
+
+Tailwind is configured with the `class` dark mode strategy, custom brand colors, and custom font families.
+
+```javascript tailwind.config.js
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: { /* 50–900 orange scale */ },
+        secondary: { /* 50–900 zinc scale */ },
+        accent: { /* matches primary */ },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'Inter', 'sans-serif'],
+      },
+    },
+  },
+}
+```
+
+## Path alias
+
+The `@` alias maps to `./src`. Use it in any component:
+
+```javascript
+import { formatCurrency } from '@/utils/formatters';
+import { useAuth } from '@/context/AuthContext';
+```

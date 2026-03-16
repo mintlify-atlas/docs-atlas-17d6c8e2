@@ -1,0 +1,126 @@
+---
+title: "Product detail"
+description: "View fabric specifications, gallery, and add to cart"
+---
+
+The product detail page is available at `/producto/:id`. The `:id` segment corresponds to the `id` field returned by the products API. The page fetches the matching product from the `ProductContext` using `getProductById(id)` — if no product is found, it shows a not-found message and links back to `/catalogo`.
+
+## Image gallery
+
+The `ImageGallery` component (`src/components/ImageGallery.jsx`) is rendered in the left column of the two-column layout and receives the product's `images` array.
+
+### Interaction model
+
+- **Main image** — displays the currently selected image in a square aspect-ratio container. Clicking the image toggles zoom.
+- **Zoom** — clicking the main image sets `isZoomed` to `true`, which animates the image to `scale: 1.5`. A *Click para alejar* badge appears in the top-right corner. Clicking again resets the scale.
+- **Thumbnails** — rendered in a 4-column grid below the main image. Clicking a thumbnail updates `selectedImage` and resets zoom. The active thumbnail has a `border-primary-600` ring.
+
+```jsx
+// ImageGallery internal state
+const [selectedImage, setSelectedImage] = useState(0);
+const [isZoomed, setIsZoomed] = useState(false);
+
+// Toggle zoom on main image click
+<motion.div
+  onClick={() => setIsZoomed(!isZoomed)}
+>
+  <motion.img
+    animate={{ opacity: 1, scale: isZoomed ? 1.5 : 1 }}
+  />
+</motion.div>
+```
+
+## Technical specifications
+
+The right column renders a *Especificaciones Técnicas* card with a 2×2 grid showing:
+
+| Field | Source |
+|---|---|
+| Material | `product.material` |
+| Ancho (width) | `product.width` |
+| Peso (weight) | `product.weight` |
+| Stock | `product.stock` meters |
+
+Below the specs card, a blue info box displays the `product.care` washing instructions.
+
+## Quantity selector
+
+The `QuantitySelector` component (`src/components/QuantitySelector.jsx`) lets you pick how many meters to purchase.
+
+```jsx
+<QuantitySelector
+  quantity={quantity}
+  setQuantity={setQuantity}
+  max={product.stock}   // upper bound = available stock
+/>
+```
+
+### Validation logic
+
+The component enforces bounds on every interaction:
+
+```jsx
+function QuantitySelector({ quantity, setQuantity, max = 100, min = 1 }) {
+  const increment = () => {
+    if (quantity < max) setQuantity(quantity + 1);
+    // Silently blocked when quantity === max
+  };
+
+  const decrement = () => {
+    if (quantity > min) setQuantity(quantity - 1);
+    // Silently blocked when quantity === min (default: 1)
+  };
+
+  const handleInputChange = (e) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value >= min && value <= max) {
+      setQuantity(value);
+    } else if (e.target.value === '') {
+      setQuantity(min); // Reset to minimum on empty input
+    }
+    // Out-of-range values from direct input are ignored
+  };
+}
+```
+
+The `+` and `-` buttons are disabled (`opacity-50 cursor-not-allowed`) when the boundary is reached. A label to the right shows `metros (máx: {max})` so you can see the stock ceiling at a glance.
+
+## Adding to cart
+
+Two action buttons appear below the quantity selector:
+
+<CardGroup cols={2}>
+  <Card title="Agregar al Carrito" icon="cart-shopping">
+    Calls `addToCart(product, quantity)` and shows a green success banner for 3 seconds. You stay on the product page.
+  </Card>
+  <Card title="Comprar Ahora" icon="bolt">
+    Calls `addToCart(product, quantity)` and immediately navigates to `/carrito`.
+  </Card>
+</CardGroup>
+
+```jsx
+const handleAddToCart = () => {
+  addToCart(product, quantity);
+  setShowSuccess(true);
+  setTimeout(() => setShowSuccess(false), 3000);
+};
+
+const handleBuyNow = () => {
+  addToCart(product, quantity);
+  navigate('/carrito');
+};
+```
+
+If the product is already in the cart, `addToCart` increments the existing quantity rather than creating a duplicate entry.
+
+## Related products
+
+Below the main product section, up to 4 related products are shown in a `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` grid. Related products are filtered by matching `category` and excluding the current product:
+
+```jsx
+const relatedProducts = products
+  .filter((p) => p.category === product.category && p.id !== product.id)
+  .slice(0, 4);
+```
+
+Each related product renders as a `ProductCard`, so the same hover actions (quick-view, add to cart) are available without navigating away.

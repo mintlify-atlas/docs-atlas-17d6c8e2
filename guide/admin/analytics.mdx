@@ -1,0 +1,137 @@
+---
+title: "Analytics"
+description: "Sales heat maps, product rotation, returns analysis, and revenue projections"
+---
+
+The analytics section provides four business-intelligence views built with the [recharts](https://recharts.org) library. Each view draws from live platform data — orders, products, bug reports, and regional sales.
+
+## Routes
+
+| Route | View |
+|---|---|
+| `/admin/analytics/mapa-ventas` | Sales heat map by Colombian department |
+| `/admin/analytics/rotacion` | Inventory rotation ranking |
+| `/admin/analytics/devoluciones` | Returns and quality report analysis |
+| `/admin/analytics/proyeccion` | Revenue projection |
+
+---
+
+## Sales heat map (`/admin/analytics/mapa-ventas`)
+
+Visualizes revenue distribution across Colombia's departments using a recharts `Treemap`.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Ventas Totales** | Platform revenue across all regions |
+| **Mejor Región** | Top-performing department with its total |
+| **Departamentos** | Count of departments with sales data |
+| **Promedio/Región** | Average revenue per department |
+
+### Treemap
+
+Each rectangle represents a department. Size is proportional to revenue. Color intensity (purple gradient) increases with revenue — lighter tiles are lower-volume, darker tiles are higher-volume. Hover for a tooltip showing department name, sales total, order count, and average order value.
+
+### Top 3 regions
+
+Three ranked cards below the treemap highlight the #1, #2, and #3 departments (gold, silver, bronze) with their total revenue, order count, and average order value.
+
+### Full region table
+
+Columns: Department, Sales, Orders, Average Order Value, and a progress bar showing % of total platform revenue.
+
+---
+
+## Inventory rotation (`/admin/analytics/rotacion`)
+
+Identifies the fastest-moving products (bestsellers) and products with no recent sales (dead stock).
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Bestsellers** | Count of top-10 products by sales velocity |
+| **Stock Muerto** | Products with no sales in the configured threshold period |
+| **Total Productos** | All products in the catalog |
+| **Umbral Actual** | Dead-stock threshold in days (editable numeric input) |
+
+### Top 10 bestsellers table
+
+| Column | Description |
+|---|---|
+| **Ranking** | Position badge (gold/silver/bronze for top 3) |
+| **Producto** | Name and ID |
+| **Ventas** | Units sold badge |
+| **Ingresos** | Total revenue generated |
+| **Velocidad** | Sales velocity in units per day |
+| **Categoría** | Fabric category badge |
+
+### Dead stock table
+
+Lists products with no sales in the last N days (where N is the configurable threshold). Columns: Product name/ID, Category, Days without sale (in red), Price, and a Recommendation badge suggesting an action (e.g. promote, discount, liquidate).
+
+<Tip>
+Adjust the dead-stock threshold in the **Umbral Actual** input card to tune sensitivity. A 30-day window is the default.
+</Tip>
+
+---
+
+## Returns analysis (`/admin/analytics/devoluciones`)
+
+Analyzes quality bug reports as a proxy for returns and identifies patterns by fabric type and seller.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Tasa de Devolución** | Percentage of orders with a `returned` status |
+| **Total Reportes** | Count of all quality bug reports |
+| **Total Pedidos** | Platform order total |
+| **Valor Afectado** | Summed total of orders flagged as returned |
+
+### Charts
+
+- **Reportes por Tipo de Tela** — recharts `PieChart` with `Cell` coloring, showing report distribution by fabric category
+- **Top Vendedores con Reportes** — horizontal bar chart (custom implementation) ranking the 5 sellers with the most reports, showing count and report rate %
+
+### Quality reports table
+
+The most recent 10 bug reports with columns: ID, Product, Client, Description, Priority badge (Alta/Media/Baja), Status badge (Abierto/Resuelto/En revisión), and Date.
+
+---
+
+## Revenue projection (`/admin/analytics/proyeccion`)
+
+Projects future monthly revenue using historical sales data and an assumed growth rate of **8.5% per month**.
+
+### Configuration
+
+A **Proyectar** dropdown at the top lets you choose the projection window: **3 months**, **6 months**, or **12 months**.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Crecimiento Esperado** | Assumed monthly growth rate (8.5%) |
+| **Proyección N meses** | Projected revenue at end of window |
+| **Escenario Conservador** | -15% of projected value |
+| **Escenario Optimista** | +20% of projected value |
+
+### Area chart
+
+A recharts `AreaChart` renders three overlapping areas:
+
+- **Conservador** (amber) — conservative scenario
+- **Proyectado** (purple) — base projection
+- **Optimista** (green) — optimistic scenario
+
+The Y-axis is in millions COP. Tooltip formats values as `$X.XXM`.
+
+### Monthly detail table
+
+Lists each projected month with Conservative, Projected, Optimistic values, and the ± range (half the spread between optimistic and conservative).
+
+<Info>
+Projections are estimates based on the 30-day rolling daily average multiplied forward with compound growth. Actual results will vary. Use the conservative scenario for budget planning.
+</Info>

@@ -1,0 +1,76 @@
+---
+title: "D&D Textil - Tienda Digital"
+description: "A full-stack digital textile store with multi-role support for clients, sellers, and admins."
+---
+
+# D&D Textil — Tienda Digital
+
+D&D Textil is a complete e-commerce platform built for textile and fabric retail. It supports three distinct roles — **client**, **seller**, and **admin** — each with their own dashboard and feature set, all within a single React application backed by a Java Spring Boot API and a PostgreSQL database.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Set up the project locally and run your first dev server in minutes.
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture">
+    Understand the hexagonal backend, React frontend, and database design.
+  </Card>
+  <Card title="Authentication" icon="shield-halved" href="/auth/overview">
+    Learn how JWT-based auth and role-based access control work.
+  </Card>
+  <Card title="Shopping Flow" icon="cart-shopping" href="/guide/catalog">
+    Explore the full buyer journey from catalog to order confirmation.
+  </Card>
+</CardGroup>
+
+## What's included
+
+<CardGroup cols={3}>
+  <Card title="Product Catalog" icon="grid">
+    Filterable, sortable product grid with category filters and price range controls.
+  </Card>
+  <Card title="Shopping Cart" icon="bag-shopping">
+    Persistent cart backed by localStorage with quantity controls and live totals.
+  </Card>
+  <Card title="Checkout & Payment" icon="credit-card">
+    Multi-step checkout with form validation, shipping calculation, and order confirmation.
+  </Card>
+  <Card title="Client Dashboard" icon="user">
+    Order tracking, wishlist, project fabric calculator, and support ticket system.
+  </Card>
+  <Card title="Seller Dashboard" icon="store">
+    Product management, order fulfillment queue, and low-stock alert monitoring.
+  </Card>
+  <Card title="Admin Dashboard" icon="gauge">
+    User management, inventory batch control, vendor moderation, analytics, and system config.
+  </Card>
+</CardGroup>
+
+## Technology stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend framework | React 18 + Vite |
+| Styling | Tailwind CSS 3 |
+| Animations | Framer Motion |
+| Routing | React Router v6 |
+| Forms | React Hook Form + Zod |
+| Backend | Java Spring Boot 3 |
+| Authentication | JWT (JSON Web Tokens) |
+| Database | PostgreSQL |
+| Password hashing | SHA-256 |
+
+## User roles
+
+<Info>
+Every route in the application is protected by a role-aware `ProtectedRoute` component. Users are redirected to the login page if they try to access a route outside their role.
+</Info>
+
+| Role | Access |
+|------|--------|
+| `client` | Shopping, cart, checkout, client dashboard |
+| `seller` | Seller dashboard, product management, order fulfillment |
+| `admin` | Full access including user management, analytics, and system config |
+
+## Project origin
+
+D&D Textil was developed as a capstone project for the **ADSO program at SENA** (Colombia's national vocational training service), demonstrating a production-grade full-stack application using modern web technologies and software architecture principles.

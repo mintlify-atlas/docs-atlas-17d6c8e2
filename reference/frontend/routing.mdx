@@ -1,0 +1,106 @@
+---
+title: "Route reference"
+description: "All application routes, their access requirements, and corresponding page components"
+---
+
+# Route reference
+
+All routes are defined in `src/App.jsx` and managed by React Router v6. Protected routes use the `ProtectedRoute` component which checks both authentication status and user role.
+
+## Public routes
+
+These routes are accessible without logging in.
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` | `Home` | Landing page with hero, carousel, and featured products |
+| `/catalogo` | `Catalog` | Product catalog with filters and sorting |
+| `/producto/:id` | `ProductDetail` | Individual product page |
+| `/carrito` | `Cart` | Shopping cart |
+| `/nosotros` | `About` | About the store |
+| `/contacto` | `Contact` | Contact form |
+| `/login` | `Login` | Login page |
+| `/registro` | `Register` | Registration page |
+| `/reportar-fallo` | `BugReport` | Public bug report form |
+| `/loader-demo` | `LoaderDemo` | TruckLoader animation demo |
+
+## Protected routes (any authenticated user)
+
+These routes require the user to be logged in but have no role restriction.
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/checkout` | `Checkout` | Checkout form and order summary |
+| `/confirmacion` | `OrderConfirmation` | Post-order confirmation page |
+| `/pago` | `Payment` | Payment processing page |
+
+## Client routes
+
+Require role `client`.
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/cliente` | `ClientDashboard` | Client dashboard home |
+| `/perfil` | `ClientProfile` | Client profile (legacy) |
+| `/mis-pedidos` | `ClientOrderHistory` | Order history (legacy) |
+| `/cliente/pedidos` | `OrderHistoryNew` | Order list with status filters |
+| `/cliente/pedidos/rastreo` | `OrderTracking` | Real-time order tracking |
+| `/cliente/coleccion` | `Wishlist` | Saved fabric wishlist |
+| `/cliente/coleccion/calculadora` | `ProjectCalculator` | Fabric quantity calculator |
+| `/cliente/soporte/nuevo` | `NewReport` | Submit a support ticket |
+| `/cliente/soporte/tickets` | `MyTickets` | View my support tickets |
+| `/cliente/configuracion` | `Profile` | Edit profile settings |
+| `/cliente/configuracion/direcciones` | `AddressBook` | Manage shipping addresses |
+
+## Seller routes
+
+Require role `seller` **or** `admin`.
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/vendedor` | `SellerDashboard` | Seller dashboard home |
+| `/vendedor/productos` | `SellerDashboard` | Product management |
+| `/vendedor/pedidos` | `SellerOrders` | Incoming order queue |
+| `/vendedor/stock` | `StockAlerts` | Stock level monitoring |
+| `/vendedor/configuracion` | `Profile` | Seller profile settings |
+
+## Admin routes
+
+Require role `admin`.
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/admin` | `AdminOverview` | Admin dashboard home |
+| `/admin/usuarios` | `UserManagement` | Manage all users |
+| `/admin/vendedores` | `SellerMetrics` | Seller performance metrics |
+| `/admin/clientes` | `ClientMetrics` | Client segmentation and metrics |
+| `/admin/productos` | `AdminProducts` | Full product catalog management |
+| `/admin/carrusel` | `ManageCarousel` | Edit homepage carousel |
+| `/admin/home` | `ManageHome` | Edit homepage content |
+| `/admin/reportes` | `AdminBugReports` | Bug report management |
+| `/admin/inventario/lotes` | `BatchControl` | Inventory batch control |
+| `/admin/inventario/merma` | `WasteCalculator` | Waste and shrinkage tracking |
+| `/admin/inventario/alertas` | `StockSettings` | Configure stock thresholds |
+| `/admin/inventario/historial` | `MovementHistory` | Inventory movement history |
+| `/admin/moderacion/aprobacion` | `ApprovalQueue` | Pending seller approvals |
+| `/admin/moderacion/vendedores` | `VendorPerformance` | Vendor performance review |
+| `/admin/analytics/mapa-ventas` | `SalesHeatMap` | Sales heat map |
+| `/admin/analytics/rotacion` | `RotationRanking` | Product rotation ranking |
+| `/admin/analytics/devoluciones` | `ReturnsAnalysis` | Returns analysis |
+| `/admin/analytics/proyeccion` | `RevenueProjection` | Revenue projection |
+| `/admin/soporte/tickets` | `TicketManagement` | Admin ticket management |
+| `/admin/soporte/cupones` | `CouponCreation` | Create discount coupons |
+| `/admin/configuracion` | `SystemConfig` | System-wide configuration |
+
+## ProtectedRoute behavior
+
+When a user is not authenticated, `ProtectedRoute` redirects to `/login`, preserving the original destination in `location.state.from` so the user is redirected back after login.
+
+When a user is authenticated but has the wrong role, they are redirected to `/`.
+
+```jsx src/components/ProtectedRoute.jsx
+<ProtectedRoute>                         // any logged-in user
+<ProtectedRoute roles="client">          // client only
+<ProtectedRoute roles={['seller', 'admin']}> // seller or admin
+<ProtectedRoute roles="admin">           // admin only
+```

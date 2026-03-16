@@ -1,0 +1,136 @@
+---
+title: "Admin support tools"
+description: "Manage customer support tickets and create discount coupons"
+---
+
+The support section provides two tools: a ticket management console where you can triage and resolve customer issues, and a coupon management page where you can create and deactivate promotional codes.
+
+## Routes
+
+| Route | View |
+|---|---|
+| `/admin/soporte/tickets` | Support ticket management |
+| `/admin/soporte/cupones` | Coupon creation and management |
+
+---
+
+## Ticket management (`/admin/soporte/tickets`)
+
+All customer support tickets submitted through the platform are visible here. Only admins can access this view — customers and sellers cannot.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Total Tickets** | All tickets ever submitted |
+| **Pendientes** | Tickets in `open` or `in_progress` state |
+| **Resueltos Hoy** | Tickets resolved on the current calendar day |
+| **Prioridad Alta** | Unresolved tickets with `high` priority |
+
+### Status filters
+
+Four buttons filter the ticket list:
+
+- **Todos** — all tickets with total count
+- **Abiertos** — `open` status (yellow)
+- **En Progreso** — `in_progress` status (blue)
+- **Resueltos** — `resolved` status (green)
+
+### Ticket cards
+
+Each ticket renders as a card with:
+
+- Ticket ID formatted as `#0001`
+- Status badge and priority label (🔴 Alta, 🟡 Media, 🟢 Baja)
+- Subject (bold heading) and description
+- Customer name, email, related order ID (if any), and creation date
+- **Ver Detalles** button to open the full detail modal
+
+At the bottom of each card:
+
+- **Status dropdown** — change status to `Abierto`, `En Progreso`, `Resuelto`, or `Cerrado`
+- **Assign to** dropdown — assign the ticket to any admin user by name
+- Current assignee name (if assigned)
+
+### Ticket detail modal
+
+Opens a full-width modal with subject, ID, status, priority, full description, customer name and email, related order, and creation timestamp. Two action buttons let you:
+
+- **Marcar en Progreso** — sets status to `in_progress`
+- **Marcar como Resuelto** — sets status to `resolved`
+
+### Ticket workflow
+
+<Steps>
+  <Step title="Triage open tickets">
+    Filter by **Abiertos** and sort by priority. High-priority tickets appear with a red label.
+  </Step>
+  <Step title="Assign to an admin">
+    Use the **Assign to** dropdown in the ticket card to route the ticket to the appropriate team member.
+  </Step>
+  <Step title="Investigate and respond">
+    Click **Ver Detalles** to read the full description and review the related order ID if one is linked.
+  </Step>
+  <Step title="Resolve or close">
+    Update the status to **Resuelto** when the issue is addressed, or **Cerrado** if no action is needed.
+  </Step>
+</Steps>
+
+---
+
+## Coupon creation (`/admin/soporte/cupones`)
+
+Create promotional discount codes and manage their lifecycle.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Total Cupones** | All coupons ever created |
+| **Activos** | Coupons currently active and not expired |
+| **Usados Hoy** | Cumulative usage count across all coupons |
+| **Expiran Pronto** | Active coupons expiring within 7 days |
+
+### Coupon table columns
+
+| Column | Description |
+|---|---|
+| **Código** | Uppercase coupon code in monospace font |
+| **Descuento** | Purple badge showing `X% OFF` or `-$X` |
+| **Usos** | Current usage count / max uses (if set) |
+| **Reglas** | Min purchase amount and/or "Solo nuevos clientes" |
+| **Expira** | Expiry date; orange if ≤7 days, red if expired |
+| **Estado** | Active (green), Inactive (grey), or Expired (red) |
+| **Acción** | **Desactivar** button for active, non-expired coupons |
+
+### Creating a coupon
+
+Click **Crear Cupón** to open the creation modal.
+
+<Steps>
+  <Step title="Enter the coupon code">
+    Type the code in the **Código del Cupón** field. It is automatically converted to uppercase. Example: `VERANO2024`.
+  </Step>
+  <Step title="Choose discount type and value">
+    Select **Porcentaje (%)** for a percentage off, or **Valor Fijo ($)** for a fixed COP amount. Enter the numeric value.
+  </Step>
+  <Step title="Set an expiry date">
+    Pick a date from the date picker. This field is required.
+  </Step>
+  <Step title="Configure optional rules">
+    - **Compra Mínima** — minimum order total in COP to redeem the coupon
+    - **Usos Máximos** — cap on total redemptions across all customers
+    - **Solo para nuevos clientes** — checkbox to restrict to first-time buyers
+  </Step>
+  <Step title="Create">
+    Click **Crear Cupón**. The coupon appears in the table immediately with `active` status.
+  </Step>
+</Steps>
+
+### Deactivating a coupon
+
+Click **Desactivar** in the Actions column for any active, non-expired coupon. The status changes to **Inactivo** and the row becomes dimmed. Deactivation is immediate and cannot be undone from the UI.
+
+<Warning>
+Expired coupons cannot be reactivated. Create a new coupon with a future expiry date if you need to extend a promotion.
+</Warning>

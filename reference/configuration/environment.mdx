@@ -1,0 +1,82 @@
+---
+title: "Environment configuration"
+description: "Configure the development and production environment for D&D Textil"
+---
+
+# Environment configuration
+
+D&D Textil consists of two independently running processes — the React frontend and the Java Spring Boot backend — that communicate over HTTP.
+
+## Frontend configuration
+
+The frontend is configured via `vite.config.js`. There is no `.env` file in the source; the backend URL is currently hardcoded in `src/context/AuthContext.jsx` and `src/context/ProductContext.jsx`.
+
+| Setting | Value | Location |
+|---------|-------|----------|
+| Dev server port | `3001` (non-strict) | `vite.config.js` |
+| Backend URL | `http://localhost:8081` | `AuthContext.jsx`, `ProductContext.jsx` |
+| Uploads proxy | `/uploads` → `http://localhost:8081` | `vite.config.js` |
+| Path alias | `@` → `./src` | `vite.config.js` |
+
+<Tip>
+To change the backend URL without modifying source files, add a Vite proxy rule in `vite.config.js` for `/api` and update all fetch calls to use relative paths like `/api/login`.
+</Tip>
+
+## Backend configuration
+
+The Spring Boot backend is configured in `src/main/resources/application.properties`. Key settings:
+
+```properties application.properties
+# Server
+server.port=8081
+
+# Database
+spring.datasource.url=jdbc:postgresql://localhost:5432/ddtextil
+spring.datasource.username=postgres
+spring.datasource.password=your_password
+spring.jpa.hibernate.ddl-auto=validate
+
+# JWT
+jwt.secret=your-256-bit-secret
+jwt.expiration=86400000
+
+# File uploads
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+```
+
+## LocalStorage keys
+
+The frontend stores state in the browser's `localStorage` under these keys:
+
+| Key | Content | Set by |
+|-----|---------|--------|
+| `authUser` | Logged-in user object (without `password_hash`) | `AuthContext` |
+| `cart` | Array of cart items | `CartContext` |
+| `applied_coupon` | Active coupon code | `CartContext` |
+| `darkMode` | Boolean dark mode preference | `useDarkMode` |
+| `lastOrder` | Last order summary for confirmation page | `Checkout` |
+
+## Windows quick-start
+
+A `iniciar_tienda.bat` script is included in the root of `tienda digital de telas/` for Windows users. It automates starting both the backend and frontend in a single double-click.
+
+```bat iniciar_tienda.bat
+@echo off
+echo Iniciando D&D Textil...
+start cmd /k "cd backend-java && mvn spring-boot:run"
+timeout /t 5
+start cmd /k "npm run dev"
+```
+
+<Note>
+The `.bat` script assumes Maven is on your system PATH and the PostgreSQL service is already running.
+</Note>
+
+## Port summary
+
+| Service | Port | Notes |
+|---------|------|-------|
+| Vite dev server (React) | 3001 | `strictPort: false` — uses next available port |
+| Spring Boot API | 8081 | Fixed in `application.properties` |
+| PostgreSQL | 5432 | Default PostgreSQL port |

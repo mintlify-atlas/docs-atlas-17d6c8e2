@@ -1,0 +1,99 @@
+---
+title: "Client dashboard"
+description: "Your personal hub for orders, wishlist, and account settings"
+---
+
+The client dashboard is your central workspace for managing every aspect of your experience on D&D Textil. After logging in with a `client` role, you land at `/cliente` where a welcome banner, live stats, and quick-action cards give you an at-a-glance view of your account.
+
+## Route
+
+| Route | Protection | Description |
+|-------|-----------|-------------|
+| `/cliente` | Auth required, role: `client` | Dashboard home |
+
+## Dashboard stats
+
+The top of the dashboard displays four live stat cards pulled from `MetricsContext`:
+
+| Stat | Description |
+|------|-------------|
+| **Total Pedidos** | Total number of your orders |
+| **En Camino** | Orders with status `paid`, `cutting`, `packed`, or `shipped` |
+| **Lista de Deseos** | Number of fabrics saved to your wishlist |
+| **Total Comprado** | Sum of all order totals, formatted as COP currency |
+
+## Main sections
+
+<CardGroup cols={2}>
+  <Card title="Orders (Compras)" icon="package" href="/guide/client/orders">
+    View your full order history, filter by status, download invoices, and track active shipments in real time.
+  </Card>
+  <Card title="Collection (Mi Colección)" icon="heart" href="/guide/client/wishlist">
+    Save fabrics to your wishlist organized by project category, and use the yardage calculator to plan purchases.
+  </Card>
+  <Card title="Support (Ayuda)" icon="message-circle" href="/guide/client/support">
+    Submit issue reports for delivered orders and track the status of your open support tickets.
+  </Card>
+  <Card title="Settings (Ajustes)" icon="tool">
+    Update your profile information, change your password, manage notification preferences, and maintain your shipping address book.
+  </Card>
+</CardGroup>
+
+## Sidebar navigation
+
+The sidebar is driven by `src/data/clientDashboardLinks.js`. The full navigation tree is:
+
+```js
+// src/data/clientDashboardLinks.js
+const clientDashboardLinks = [
+    { label: 'Mi Resumen',   path: '/cliente',                            icon: FiUser },
+    {
+        label: 'Compras',    icon: FiPackage,
+        children: [
+            { label: 'Historial de Pedidos', path: '/cliente/pedidos' },
+            { label: 'Rastrear Envío',       path: '/cliente/pedidos/rastreo' },
+        ]
+    },
+    {
+        label: 'Mi Colección', icon: FiHeart,
+        children: [
+            { label: 'Lista de Deseos',         path: '/cliente/coleccion' },
+            { label: 'Calculadora de Metraje',  path: '/cliente/coleccion/calculadora' },
+        ]
+    },
+    {
+        label: 'Ayuda', icon: FiMessageCircle, badge: 1,
+        children: [
+            { label: 'Mis Tickets',      path: '/cliente/soporte/tickets', badge: 1 },
+            { label: 'Reportar Problema', path: '/cliente/soporte/nuevo' },
+        ]
+    },
+    {
+        label: 'Ajustes', icon: FiTool,
+        children: [
+            { label: 'Mi Perfil',             path: '/cliente/configuracion' },
+            { label: 'Libreta de Direcciones', path: '/cliente/configuracion/direcciones' },
+        ]
+    }
+];
+```
+
+<Note>
+  The **Ayuda** section shows a badge count (`badge: 1`) reflecting open support tickets. This is computed from `MetricsContext` as the number of tickets with status `open` or `in_progress`.
+</Note>
+
+## All client routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/cliente` | `ClientDashboard` | Dashboard overview |
+| `/cliente/pedidos` | `Orders/OrderHistory` | Full order history with filters |
+| `/cliente/pedidos/rastreo` | `Orders/OrderTracking` | Real-time shipment tracking |
+| `/cliente/coleccion` | `Collection/Wishlist` | Wishlist — virtual fabric sample board |
+| `/cliente/coleccion/calculadora` | `Collection/ProjectCalculator` | Fabric yardage calculator |
+| `/cliente/soporte/nuevo` | `Support/NewReport` | Submit a new issue report |
+| `/cliente/soporte/tickets` | `Support/MyTickets` | View and manage your tickets |
+| `/cliente/configuracion` | `Settings/Profile` | Edit profile and notification preferences |
+| `/cliente/configuracion/direcciones` | `Settings/AddressBook` | Manage shipping addresses |
+
+All routes under `/cliente/*` are protected. Unauthenticated users are redirected to the login page, and users with a role other than `client` are denied access.

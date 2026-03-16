@@ -1,0 +1,148 @@
+---
+title: "Shopping cart"
+description: "Manage items, quantities, and review your order before checkout"
+---
+
+The shopping cart page is available at `/carrito`. It uses the `CartContext` to read and mutate the list of items, and renders a two-column layout: the item list on the left (spanning 2/3 of the grid) and the `CartSummary` on the right.
+
+When the cart is empty the page shows an empty-state illustration with a link back to `/catalogo`.
+
+<Note>
+  The cart persists across browser sessions. Items and any applied coupon code are stored in `localStorage` under the keys `cart` and `applied_coupon` respectively, so your selections survive a page refresh or closing the tab.
+</Note>
+
+## CartContext API
+
+Import `useCart` from `CartContext` to access the full cart API anywhere inside the `CartProvider` tree:
+
+```jsx
+import { useCart } from '../context/CartContext';
+
+const {
+  cartItems,          // CartItem[] — current items in the cart
+  appliedCoupon,      // Coupon | null — currently applied coupon
+  setAppliedCoupon,   // (coupon: Coupon | null) => void
+  addToCart,          // (product, quantity?: number) => void
+  updateQuantity,     // (productId, newQuantity: number) => void
+  removeFromCart,     // (productId) => void
+  clearCart,          // () => void — empties cart and removes coupon
+  getCartTotal,       // () => number — sum of price × quantity for all items
+  getCartItemCount,   // () => number — total meter count across all items
+  isInCart,           // (productId) => boolean
+  getProductQuantity, // (productId) => number
+} = useCart();
+```
+
+### addToCart
+
+```javascript
+addToCart(product, quantity = 1)
+```
+
+If `product.id` already exists in the cart, the existing entry's `quantity` is incremented by the supplied value. Otherwise the product is appended as a new entry.
+
+### updateQuantity
+
+```javascript
+updateQuantity(productId, newQuantity)
+```
+
+Sets the quantity for a specific cart item. If `newQuantity` is `0` or below, `removeFromCart` is called automatically — the item is removed rather than stored with a zero quantity.
+
+```javascript
+const updateQuantity = (productId, newQuantity) => {
+  if (newQuantity <= 0) {
+    removeFromCart(productId);
+    return;
+  }
+  // ... update the item
+};
+```
+
+### removeFromCart
+
+```javascript
+removeFromCart(productId)
+```
+
+Filters out the item with the matching `id`. The `CartItem` component calls this when you click the red trash icon.
+
+### clearCart
+
+```javascript
+clearCart()
+```
+
+Resets `cartItems` to `[]` and sets `appliedCoupon` to `null`. This is triggered by the *Vaciar Carrito* button on the cart page and automatically after a successful order on the confirmation page.
+
+## Cart total calculation
+
+```javascript
+const getCartTotal = () => {
+  return cartItems.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+};
+```
+
+The total is the raw subtotal before shipping, tax, or discounts. Those are calculated in `CartSummary` and again in `Checkout` at order submission time.
+
+## localStorage persistence
+
+The `useLocalStorage` hook powers both `cartItems` and `appliedCoupon`. It wraps `useState` and syncs every state update to `localStorage` automatically:
+
+```javascript
+const [cartItems, setCartItems] = useLocalStorage('cart', []);
+const [appliedCoupon, setAppliedCoupon] = useLocalStorage('applied_coupon', null);
+```
+
+The initial value (`[]` / `null`) is used only when no existing value is found in storage.
+
+## CartItem component
+
+`CartItem` (`src/components/CartItem.jsx`) renders each line item as a card containing:
+
+- **Thumbnail** — `item.images[0]` in a 96×96 px (desktop: 128×128 px) rounded container
+- **Name and category** — title truncated to one line
+- **QuantitySelector** — calls `updateQuantity(item.id, newQuantity)` bound to `item.stock` as the max
+- **Unit price × quantity** breakdown and bold line total
+- **Delete button** — red trash icon that calls `removeFromCart(item.id)`
+
+Items animate in on mount and slide out to the left on removal via `AnimatePresence`.
+
+## CartSummary component
+
+`CartSummary` (`src/components/CartSummary.jsx`) is a sticky sidebar card that shows the full order breakdown and navigates to checkout.
+
+### Price breakdown
+
+```javascript
+const subtotal = getCartTotal();
+
+// Coupon discount (percentage or fixed amount, capped at subtotal)
+let discountAmount = 0;
+if (appliedCoupon) {
+  if (appliedCoupon.discountType === 'percentage') {
+    discountAmount = subtotal * (appliedCoupon.discountValue / 100);
+  } else {
+    discountAmount = appliedCoupon.discountValue;
+  }
+  discountAmount = Math.min(discountAmount, subtotal);
+}
+
+const discountedSubtotal = subtotal - discountAmount;
+const shipping = discountedSubtotal >= 100000 ? 0 : 15000; // Free shipping above $100,000 COP
+const tax = discountedSubtotal * 0.19;                     // IVA 19%
+const total = discountedSubtotal + shipping + tax;
+```
+
+When the discounted subtotal is below $100,000 COP, a hint shows exactly how much more you need to add to qualify for free shipping.
+
+### Coupon codes
+
+You can enter a coupon code in the summary panel. The code is looked up against the active coupons from `MetricsContext`, validated for expiry and minimum purchase rules, and then stored via `setAppliedCoupon`. An applied coupon can be removed by clicking the × button next to the code badge.
+
+### Proceed to checkout
+
+The *Proceder al Pago* button is a `Link` to `/checkout`. It is always visible as long as the cart has items — there is no additional login gate on the cart page itself.

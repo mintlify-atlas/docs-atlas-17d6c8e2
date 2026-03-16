@@ -1,0 +1,70 @@
+---
+title: "Product management"
+description: "Add, edit, and manage your fabric listings"
+---
+
+The product management view lives at `/vendedor/productos` (rendered inside the main seller dashboard at `/vendedor`). It shows every fabric listing that belongs to your seller account and lets you update details or remove items.
+
+## Route
+
+`/vendedor/productos` — requires role `seller` or `admin`.
+
+## Product listing
+
+The **Mi Inventario** table displays all of your products. Each row shows:
+
+| Column | Details |
+|---|---|
+| **Producto** | Thumbnail image, product name, and internal ID |
+| **Precio** | Unit price formatted in Colombian pesos |
+| **Stock** | Current meters available. Shown in red when below 20 m, green otherwise |
+| **Categoría** | Fabric category (e.g. Lino, Algodón, Seda) |
+| **Acciones** | Edit and delete buttons |
+
+## Adding a new product
+
+Click **Nuevo Producto** in the table header. Fill in the required fields in the creation form:
+
+- **Nombre** — display name shown to customers
+- **Precio** — price per meter in COP
+- **Stock** — initial stock quantity in meters
+- **Categoría** — fabric type or collection
+- **Descripción** — product details visible on the catalog page
+- **Imagen** — upload a product photo (accepted formats: JPEG, PNG, WebP)
+
+<Tip>
+Uploaded images are converted to Base64 on the client and then sent to the API at `PUT /api/products/:id/image`, which returns a served URL. Your listing will always display the hosted URL, not the raw Base64 string.
+</Tip>
+
+## Editing an existing product
+
+<Steps>
+  <Step title="Click the edit icon">
+    In the **Acciones** column, click the blue pencil icon for the product you want to change. The row switches to edit mode.
+  </Step>
+  <Step title="Update the fields">
+    You can change the **name**, **price** (numeric input), **stock** (numeric input), and **image** (file picker). Category is not editable inline — contact an admin to reclassify a product.
+  </Step>
+  <Step title="Save or cancel">
+    Click the green **save** icon to confirm your changes, or the grey **X** to discard them. A success notification confirms the update.
+  </Step>
+</Steps>
+
+After saving, the system refreshes both the `MetricsContext` and the `ProductContext` so that the catalog and your dashboard reflect the new values immediately.
+
+## Deleting a product
+
+Click the red trash icon in the **Acciones** column. A confirmation dialog asks you to verify the deletion. Deleted products are removed from the catalog and will no longer appear in future orders.
+
+<Warning>
+Deletion is permanent. If you want to temporarily hide a product, set its stock to 0 instead of deleting it.
+</Warning>
+
+## Stock indicators
+
+The stock badge in the table uses color to signal urgency:
+
+- **Green badge** — 20 m or more in stock
+- **Red badge** — fewer than 20 m (matches the platform-wide `lowStockThreshold`)
+
+For a dedicated low-stock monitoring view, go to [Stock alerts](/guide/seller/stock-alerts).

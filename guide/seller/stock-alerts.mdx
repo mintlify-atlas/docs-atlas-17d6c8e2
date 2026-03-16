@@ -1,0 +1,59 @@
+---
+title: "Stock alerts"
+description: "Monitor inventory levels and respond to low-stock warnings"
+---
+
+The stock alerts page gives you a real-time view of your inventory health. It groups your products into severity tiers and surfaces any open quality reports that need attention.
+
+## Route
+
+`/vendedor/stock` — requires role `seller` or `admin`.
+
+<Warning>
+Keep your stock levels updated at all times. If a product sells out and its stock field is not set to 0, customers can still place orders you cannot fulfill. Update the stock value immediately after each restock or sale outside the platform.
+</Warning>
+
+## Summary cards
+
+Four cards at the top of the page provide an instant snapshot:
+
+| Card | Threshold | Color |
+|---|---|---|
+| **Stock Crítico** | fewer than 10 m | Red |
+| **Stock Bajo** | 10 m to `lowStockThreshold` m | Orange |
+| **Agotados** | 0 m | Grey |
+| **Reportes Abiertos** | open quality reports | Yellow |
+
+The `lowStockThreshold` is configured by your platform admin at `/admin/configuracion`. It defaults to **20 m**.
+
+## Stock critical section
+
+Products with fewer than **10 meters** appear in a red-highlighted panel labeled "Stock Crítico — Acción Urgente". Each item shows:
+
+- Product image and name
+- Internal reference ID and price per meter
+- Current stock in meters (displayed in red)
+- A **Reponer Urgente** button to trigger a restock action
+
+## Low stock section
+
+Products between 10 m and the configured threshold appear in the **Stock Bajo — Planificar Reposición** panel. The same fields are shown with the stock figure in orange. Use the **Reponer Stock** button to initiate a reorder.
+
+## Out of stock section
+
+Products with exactly **0 meters** appear greyed out in the **Productos Agotados** panel. The stock badge shows the text `AGOTADO` instead of a number. Use **Reponer** to bring the product back into stock.
+
+## Open quality reports
+
+The **Reportes de Calidad Pendientes** panel lists bug reports filed by customers against your products that are still in the `open` state. Each report shows:
+
+- Title and description
+- Priority badge: `Alta` (red), `Media` (yellow), or `Baja` (blue)
+- Affected product name and customer name
+- Date the report was created
+
+Resolve these reports promptly to maintain your quality score visible to admins.
+
+## All-clear state
+
+When you have no critical items, no low stock, no out-of-stock products, and no open reports, the page shows a green confirmation card: **"¡Todo en Orden!"**

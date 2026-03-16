@@ -1,0 +1,171 @@
+---
+title: "Architecture"
+description: "How D&D Textil is structured — frontend, backend, and database"
+---
+
+## High-level layers
+
+<CardGroup cols={2}>
+  <Card title="React frontend" icon="react">
+    React 18 + Vite SPA served on port 3001. Handles all UI, routing, and state management via Context API. Communicates with the backend exclusively through `fetch()` calls to REST endpoints.
+  </Card>
+  <Card title="Spring Boot backend" icon="java">
+    Java 17 + Spring Boot 3 REST API on port 8081. Organized as a hexagonal (ports & adapters) architecture. Handles authentication, authorization, and all business logic.
+  </Card>
+  <Card title="PostgreSQL database" icon="database">
+    Relational store for users, products, orders, coupons, support tickets, and configuration data. Accessed by the backend through JPA/Hibernate repositories.
+  </Card>
+  <Card title="File uploads" icon="file-arrow-up">
+    Product images are served from the backend under the `/uploads` path. The Vite dev proxy forwards all `/uploads` requests from the frontend to `http://localhost:8081`.
+  </Card>
+</CardGroup>
+
+## Data flow
+
+All data in D&D Textil moves along one path:
+
+```
+React frontend  →  fetch()  →  Spring Boot REST API  →  PostgreSQL
+                ←  JSON     ←                         ←
+```
+
+The frontend never accesses the database directly. Every read or write goes through an HTTP call to the backend at `http://localhost:8081`. Contexts like `ProductContext` and `MetricsContext` call the API on mount and expose the resulting data to the component tree via React's Context API.
+
+## Backend: hexagonal architecture
+
+The backend follows a **hexagonal (ports & adapters)** design to keep business logic independent from infrastructure concerns.
+
+```
+src/main/java/com/ddtextil/
+├── application/           # Use cases
+│   ├── ports/            # Input/output port interfaces
+│   └── services/         # Service implementations
+├── domain/               # Pure business entities and logic
+│   ├── model/
+│   └── service/
+├── infrastructure/       # Adapters
+│   ├── config/           # Spring configuration
+│   ├── persistence/      # JPA/Hibernate repositories (output adapter)
+│   └── rest/             # REST controllers (input adapter)
+└── DdTextilApplication.java
+```
+
+The `domain` layer has no dependencies on Spring or any external library. The `application` layer defines port interfaces that the `infrastructure` adapters implement. This means you can swap out the REST layer or the database adapter without touching business logic.
+
+Security uses **JWT (JSON Web Tokens)**. After login, the client includes the token in every request using the `Authorization: Bearer <token>` header. Roles in the database are stored as `administrador`, `vendedor`, and `cliente`; the frontend normalizes these to `admin`, `seller`, and `client` in `AuthContext.jsx`.
+
+## Frontend: source structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── Header.jsx
+│   ├── Footer.jsx
+│   ├── Hero.jsx
+│   ├── Carousel.jsx
+│   ├── ProductCard.jsx
+│   ├── ProductGrid.jsx
+│   ├── ImageGallery.jsx
+│   ├── QuantitySelector.jsx
+│   ├── CartItem.jsx
+│   ├── CartSummary.jsx
+│   ├── CheckoutForm.jsx
+│   ├── OrderSummary.jsx
+│   ├── FeaturedProducts.jsx
+│   ├── Benefits.jsx
+│   ├── AppProviders.jsx  # Context provider tree
+│   └── ProtectedRoute.jsx
+├── pages/               # Route-level page components
+│   ├── Home.jsx
+│   ├── Catalog.jsx
+│   ├── ProductDetail.jsx
+│   ├── Cart.jsx
+│   ├── Checkout.jsx
+│   ├── OrderConfirmation.jsx
+│   ├── client/          # Client dashboard pages
+│   ├── seller/          # Seller dashboard pages
+│   └── admin/           # Admin dashboard pages
+├── context/             # React Context API providers
+│   ├── AuthContext.jsx
+│   ├── CartContext.jsx
+│   ├── ProductContext.jsx
+│   ├── MetricsContext.jsx
+│   ├── NotificationContext.jsx
+│   └── UIContext.jsx
+├── hooks/               # Custom hooks
+│   ├── useDarkMode.js
+│   └── useLocalStorage.js
+├── utils/               # Utility functions
+│   └── formatters.js
+├── data/                # Static and mock data
+│   └── products.json
+├── App.jsx              # Root component and route definitions
+├── main.jsx             # Application entry point
+└── index.css            # Global styles
+```
+
+## Context API
+
+All providers are mounted once in `AppProviders.jsx` and nested in this order:
+
+```jsx
+<NotificationProvider>
+  <AuthProvider>
+    <MetricsProvider>
+      <CartProvider>
+        <ProductProvider>
+          <UIProvider>
+            {children}
+          </UIProvider>
+        </ProductProvider>
+      </CartProvider>
+    </MetricsProvider>
+  </AuthProvider>
+</NotificationProvider>
+```
+
+| Context | Hook | Responsibility |
+|---------|------|----------------|
+| `NotificationContext` | `useNotification()` | Renders and dismisses toast notifications (success, error, info). Mounted at the outermost level so all other contexts can trigger toasts. |
+| `AuthContext` | `useAuth()` | Manages the authenticated user session stored in `localStorage`. Exposes `login()`, `register()`, `logout()`, and `hasRole()`. Calls `POST /api/login` and `POST /api/register` on the backend. |
+| `MetricsContext` | `useMetrics()` | Provides admin-level data (users, orders, sales data, inventory batches, support tickets, coupons, system config). Fetches from the backend on mount and falls back to mock data if the API is unavailable. |
+| `CartContext` | `useCart()` | Manages the shopping cart items and applied coupon. Persisted in `localStorage`. Exposes `addToCart()`, `removeFromCart()`, `updateQuantity()`, and `clearCart()`. |
+| `ProductContext` | `useProducts()` | Fetches and caches the product catalog from `GET /api/products`. Exposes `addProduct()`, `updateProduct()`, `deleteProduct()`, and `getFeaturedProducts()`. |
+| `UIContext` | `useUI()` | Manages carousel slides and home section visibility for admin customization. State is local — not persisted to the backend. |
+
+## User roles and route protection
+
+Every restricted route in `App.jsx` is wrapped with `ProtectedRoute`:
+
+```jsx
+<ProtectedRoute roles="admin">
+  <AdminOverview />
+</ProtectedRoute>
+```
+
+`ProtectedRoute` reads from `AuthContext` and enforces two checks:
+
+1. **Authentication:** If `isAuthenticated` is false, the user is redirected to `/login`, and the intended URL is saved in router state so they land back there after logging in.
+2. **Authorization:** If a `roles` prop is provided and `hasRole(roles)` returns false, the user is redirected to `/` (home).
+
+The three roles and their access levels are:
+
+| Role | Routes accessible |
+|------|------------------|
+| `client` | Public routes, `/checkout`, `/confirmacion`, `/pago`, `/cliente/*`, `/perfil`, `/mis-pedidos` |
+| `seller` | All client access plus `/vendedor/*` (product management, orders, stock alerts) |
+| `admin` | Full access including `/admin/*` (user management, inventory, analytics, moderation, support, system config). Admin users can also access all seller routes. |
+
+<Info>
+  The `seller` and `admin` roles share access to all `/vendedor/*` routes. In `App.jsx`, these routes use `roles={['seller', 'admin']}`. Admin-only routes use `roles="admin"`.
+</Info>
+
+## Database schema
+
+The PostgreSQL database uses the following core tables:
+
+| Table | Key columns |
+|-------|-------------|
+| `users` | `id` (UUID), `email` (unique), `password_hash`, `role`, `full_name` |
+| `products` | `id` (UUID), `name`, `price`, `stock`, `category_id`, `seller_id` (FK) |
+| `orders` | `id` (UUID), `user_id` (FK), `total_amount`, `status` (`PENDING`, `PAID`, `SHIPPED`, `DELIVERED`), `created_at` |

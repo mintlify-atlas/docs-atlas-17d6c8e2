@@ -1,0 +1,95 @@
+---
+title: User roles
+description: The three roles in D&D Textil and what each can access
+---
+
+D&D Textil has three roles. Every authenticated user has exactly one role, stored as a normalized string on the `user` object.
+
+<CardGroup cols={3}>
+  <Card title="Client" icon="user">
+    Regular shoppers. Redirected to `/mi-cuenta` after login.
+
+    **Accessible routes:**
+    - `/cliente`
+    - `/perfil`
+    - `/mis-pedidos`
+    - `/cliente/pedidos`
+    - `/cliente/coleccion`
+    - `/cliente/soporte`
+    - `/cliente/configuracion`
+  </Card>
+
+  <Card title="Seller" icon="store">
+    Store staff who manage products and orders. Redirected to `/vendedor` after login.
+
+    **Accessible routes:**
+    - `/vendedor`
+    - `/vendedor/productos`
+    - `/vendedor/pedidos`
+    - `/vendedor/stock`
+    - `/vendedor/configuracion`
+  </Card>
+
+  <Card title="Admin" icon="shield">
+    Full system access. Redirected to `/admin` after login.
+
+    **Accessible routes:**
+    - `/admin`
+    - All `/admin/*` sub-routes
+  </Card>
+</CardGroup>
+
+## How ProtectedRoute works
+
+`ProtectedRoute` is a wrapper component that sits around any route that requires authentication or a specific role. It reads `isAuthenticated` and `hasRole` from `AuthContext` and decides whether to render the children or redirect.
+
+```jsx
+function ProtectedRoute({ children, roles }) {
+    const { user, isAuthenticated, hasRole } = useAuth();
+    const location = useLocation();
+
+    if (!isAuthenticated) {
+        // Redirect to login, saving the attempted URL
+        return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (roles && !hasRole(roles)) {
+        // Wrong role — redirect to home
+        return <Navigate to="/" replace />;
+    }
+
+    return children;
+}
+```
+
+Pass a single role string or an array of allowed roles via the `roles` prop:
+
+```jsx
+// Only admins
+<ProtectedRoute roles="admin">
+  <AdminDashboard />
+</ProtectedRoute>
+
+// Admins or sellers
+<ProtectedRoute roles={['admin', 'seller']}>
+  <ProductEditor />
+</ProtectedRoute>
+
+// Any authenticated user (no role restriction)
+<ProtectedRoute>
+  <ProfilePage />
+</ProtectedRoute>
+```
+
+When no `roles` prop is provided, `ProtectedRoute` only checks that the user is authenticated.
+
+## Route-to-role reference
+
+| Route pattern | Required role |
+|---|---|
+| `/admin/*` | `admin` |
+| `/vendedor/*` | `seller` |
+| `/cliente/*` | `client` |
+| `/perfil` | `client` |
+| `/mis-pedidos` | `client` |
+| `/mi-cuenta` | any authenticated user |

@@ -1,0 +1,161 @@
+---
+title: "Inventory management"
+description: "Batch control, waste tracking, stock settings, and movement history"
+---
+
+The inventory section provides four sub-modules for managing physical fabric stock across the platform.
+
+## Routes
+
+| Route | Module |
+|---|---|
+| `/admin/inventario/lotes` | Batch control (rolls and batches) |
+| `/admin/inventario/merma` | Waste calculator |
+| `/admin/inventario/alertas` | Stock alert settings |
+| `/admin/inventario/historial` | Movement history |
+
+---
+
+## Batch control (`/admin/inventario/lotes`)
+
+This view tracks every fabric roll (lote/rollo) in the warehouse.
+
+### Table columns
+
+| Column | Description |
+|---|---|
+| **ID Rollo** | Unique roll identifier |
+| **Tipo de Tela** | Fabric type (e.g. Lino, Seda, Denim) |
+| **Proveedor** | Supplier name |
+| **Metros Iniciales** | Original roll length when received |
+| **Metros Actuales** | Remaining meters (editable inline) |
+| **Merma %** | Waste percentage calculated from waste events |
+| **Estado** | `Activo` (green), `Bajo` (yellow), or `Crítico` (red) |
+| **Última Actualización** | Date of most recent change |
+| **Acciones** | Progress bar showing % remaining |
+
+### Filtering batches
+
+Four filter buttons narrow the list: **Todos**, **Activos**, **Stock Bajo**, **Crítico**.
+
+### Updating current meters
+
+Click the edit icon next to the meters value in any row. An inline number input appears — type the corrected value and press Enter or click away to save.
+
+### Adding a batch
+
+Click **Agregar Lote** to open the add-batch modal. Fill in the roll ID, fabric type, supplier, and initial meter count.
+
+### Summary cards
+
+Four cards below the table show: Total de Lotes, Lotes Activos, Stock Bajo, and Estado Crítico counts.
+
+<Warning>
+A waste percentage above 10% is highlighted in red. Investigate the cause using the Waste Calculator before accepting further deliveries from the same supplier.
+</Warning>
+
+---
+
+## Waste calculator (`/admin/inventario/merma`)
+
+The waste calculator tracks fabric loss events and visualizes waste patterns using recharts.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Total Merma** | Cumulative meters lost across all events |
+| **Eventos Registrados** | Count of logged waste events |
+| **Promedio por Evento** | Average meters lost per event |
+| **Principal Causa** | The waste reason with the highest meter total |
+
+### Charts
+
+- **Merma por Razón** — bar chart (recharts `BarChart`) breaking waste meters down by cause
+- **Tendencia de Merma** — line chart (recharts `LineChart`) showing waste over the last 10 events
+
+### Waste events table
+
+Columns: Date, Roll ID, Meters (in red), Reason badge, Description, Responsible person.
+
+### Logging a waste event
+
+Click **Registrar Merma** to open the form:
+
+<Steps>
+  <Step title="Select the roll">
+    Choose an existing roll from the **ID Rollo** dropdown. The dropdown lists all batches with their fabric type.
+  </Step>
+  <Step title="Enter meters wasted">
+    Input the number of meters lost. Accepts decimal values (step 0.1).
+  </Step>
+  <Step title="Choose a reason">
+    Select from: **Defecto de Fábrica**, **Error de Corte**, **Dañado en Transporte**, **Control de Calidad**.
+  </Step>
+  <Step title="Add description and responsible person">
+    Enter a free-text description and the name of the person responsible (or N/A).
+  </Step>
+  <Step title="Submit">
+    Click **Registrar** to save. The event is added to the table and charts update immediately.
+  </Step>
+</Steps>
+
+---
+
+## Stock alert settings (`/admin/inventario/alertas`)
+
+Configure minimum stock thresholds per fabric type and manage platform-wide alert notifications.
+
+### Stats cards
+
+- **Alertas Activas** — count of rolls currently below their threshold
+- **Notificaciones Email** — toggle switch to enable/disable email alerts
+- **Umbrales Configurados** — total number of fabric-type thresholds set
+
+### Threshold table
+
+Each row represents a fabric type with:
+
+| Column | Description |
+|---|---|
+| **Tipo de Tela** | Fabric category name |
+| **Stock Actual** | Current meters across all rolls of this type |
+| **Umbral Mínimo (m)** | Minimum acceptable meters (click to edit inline) |
+| **Estado** | Green **Normal** or red **Stock Bajo** badge |
+| **Alerta** | Per-type alert enable/disable toggle |
+
+Rows with stock at or below the minimum are highlighted with a red background.
+
+### Active alerts panel
+
+When any rolls breach their threshold, a red-bordered panel lists each alert with the fabric type, roll ID, current meters, and minimum threshold.
+
+---
+
+## Movement history (`/admin/inventario/historial`)
+
+A full audit log of all inventory changes — sales and waste events — generated from batch and order data.
+
+### Filtering
+
+- **Search bar** — filter by roll ID, user, or fabric type
+- **Type buttons** — All, Merma (waste), Ventas (sales)
+
+### Movement table columns
+
+| Column | Description |
+|---|---|
+| **Fecha** | Event date |
+| **Tipo** | Green **Venta** or red **Merma** badge |
+| **Usuario** | Name of the user who triggered the movement |
+| **Rollo** | Roll ID |
+| **Tipo de Tela** | Fabric type |
+| **Metros** | Change in meters (negative values in red, positive in green) |
+| **Razón** | Reason text |
+| **Estado** | Completed or other status |
+
+The table is capped at **50 rows** per page. Use filters to narrow results before exporting.
+
+### Exporting to CSV
+
+Click **Exportar CSV** to download the currently filtered movements as a CSV file. The file is named `historial_inventario_YYYY-MM-DD.csv` and includes all eight columns.

@@ -1,0 +1,149 @@
+---
+title: "Component reference"
+description: "Reusable UI components, custom hooks, and context providers in D&D Textil"
+---
+
+# Component reference
+
+All shared components are exported from `src/components/index.js` and organized into logical groups.
+
+## Layout components
+
+| Component | Route usage | Description |
+|-----------|-------------|-------------|
+| `Header` | All pages | Top navigation bar with cart count badge, dark mode toggle, and user menu |
+| `Footer` | All pages | Site footer with links and branding |
+| `ScrollToTop` | App-level | Scrolls to top on route change |
+| `AppProviders` | `main.jsx` | Wraps the entire app with all context providers |
+| `ProtectedRoute` | `App.jsx` | Guards routes by auth status and user role |
+
+### AppProviders nesting order
+
+```jsx src/components/AppProviders.jsx
+export function AppProviders({ children }) {
+  return (
+    <NotificationProvider>
+      <AuthProvider>
+        <MetricsProvider>
+          <CartProvider>
+            <ProductProvider>
+              <UIProvider>
+                {children}
+              </UIProvider>
+            </ProductProvider>
+          </CartProvider>
+        </MetricsProvider>
+      </AuthProvider>
+    </NotificationProvider>
+  );
+}
+```
+
+<Info>
+Providers are ordered so that `AuthProvider` is available to `MetricsProvider` and `CartProvider`, which depend on knowing the current user.
+</Info>
+
+## Product components
+
+| Component | Description |
+|-----------|-------------|
+| `ProductCard` | Displays a single product tile with image, name, price, stock badge, and add-to-cart button |
+| `ProductGrid` | Renders a responsive grid of `ProductCard` components with filter and sort controls |
+| `ImageGallery` | Full-screen image gallery with zoom (`scale: 1.5`) and thumbnail navigation |
+| `FeaturedProducts` | Home page section showing featured products |
+
+## Cart components
+
+| Component | Description |
+|-----------|-------------|
+| `CartItem` | Individual line item in the cart with quantity controls and remove button |
+| `CartSummary` | Price breakdown: subtotal, coupon discount, shipping, IVA 19%, and total |
+| `OrderSummary` | Read-only order summary shown during checkout |
+
+## Form components
+
+| Component | Description |
+|-----------|-------------|
+| `CheckoutForm` | Multi-field shipping and contact form with React Hook Form + Zod validation |
+| `QuantitySelector` | Increment/decrement input bounded by `min=1` and `max=product.stock` |
+
+## UI / presentational components
+
+| Component | Description |
+|-----------|-------------|
+| `Hero` | Home page hero section with CTA buttons |
+| `Carousel` | Auto-playing promotional banner carousel |
+| `Benefits` | Home page benefits strip (free shipping, returns, etc.) |
+| `Toast` | Notification toast with success/error/info variants |
+| `TruckLoader` | Animated truck loading indicator used during page transitions |
+
+## Custom hooks
+
+### `useDarkMode`
+
+Toggles dark mode by adding/removing the `dark` class on `<html>`. Persists the preference in localStorage under the key `darkMode`.
+
+```javascript src/hooks/useDarkMode.js
+export function useDarkMode() {
+  const [darkMode, setDarkMode] = useLocalStorage('darkMode', false);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const toggleDarkMode = () => setDarkMode(!darkMode);
+  return [darkMode, toggleDarkMode];
+}
+```
+
+### `useLocalStorage`
+
+A drop-in replacement for `useState` that syncs state with `localStorage`.
+
+```javascript src/hooks/useLocalStorage.js
+export function useLocalStorage(key, initialValue) {
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  const setValue = (value) => {
+    const valueToStore = value instanceof Function ? value(storedValue) : value;
+    setStoredValue(valueToStore);
+    window.localStorage.setItem(key, JSON.stringify(valueToStore));
+  };
+
+  return [storedValue, setValue];
+}
+```
+
+## Utility functions
+
+All utilities live in `src/utils/formatters.js`.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `formatCurrency` | `(amount: number) => string` | Formats a number as Colombian Pesos (COP) using `Intl.NumberFormat` |
+| `formatDate` | `(date: Date\|string) => string` | Formats a date in Spanish (es-CO) locale, e.g. "16 de marzo de 2026" |
+| `generateId` | `() => string` | Generates a unique ID: `{Date.now()}-{random base-36 string}` |
+| `truncateText` | `(text: string, maxLength?: number) => string` | Truncates to `maxLength` (default 100) and appends `...` |
+
+## Context providers
+
+| Context | Hook | Key state/actions |
+|---------|------|-------------------|
+| `AuthContext` | `useAuth()` | `user`, `login()`, `register()`, `logout()`, `hasRole()`, `isAuthenticated` |
+| `CartContext` | `useCart()` | `cart`, `addToCart()`, `removeFromCart()`, `updateQuantity()`, `clearCart()`, `totalItems`, `totalPrice` |
+| `ProductContext` | `useProducts()` | `products`, `loading`, `error`, `getProductById()`, `refetch()` |
+| `MetricsContext` | `useMetrics()` | Platform metrics for admin/seller dashboards |
+| `NotificationContext` | `useNotification()` | `showNotification()` with type (success/error/info/warning) |
+| `UIContext` | `useUI()` | `isMobileMenuOpen`, `toggleMobileMenu()`, loading state |

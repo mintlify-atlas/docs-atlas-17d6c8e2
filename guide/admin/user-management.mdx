@@ -1,0 +1,101 @@
+---
+title: "User management"
+description: "View, manage, and role-assign users across the platform"
+---
+
+The user management section lets you search and filter all registered accounts, change roles, and toggle account activation. Three dedicated views break users down by role for deeper analysis.
+
+## Routes
+
+| Route | View |
+|---|---|
+| `/admin/usuarios` | Full user list with search, role filter, and inline role editing |
+| `/admin/vendedores` | Seller-specific metrics and performance comparison |
+| `/admin/clientes` | Client segmentation and top-10 buyer ranking |
+
+## User list (`/admin/usuarios`)
+
+### Searching and filtering
+
+Two controls appear above the user table:
+
+- **Search bar** — filters by name or email address (case-insensitive)
+- **Role filter** — dropdown with options: All roles, Administradores, Vendedores, Clientes
+
+The table header shows the matched user count.
+
+### User table columns
+
+| Column | Details |
+|---|---|
+| **Usuario** | Full name and email |
+| **Rol** | Colored badge: purple for admin, blue for seller, green for client |
+| **Estado** | Green **Activo** or red **Inactivo** badge |
+| **Registro** | Account creation date |
+| **Último Acceso** | Date of most recent login |
+| **Acciones** | Edit-role and toggle-active buttons |
+
+### Changing a user's role
+
+<Steps>
+  <Step title="Click the edit icon">
+    Press the blue pencil icon in the Actions column for the user you want to reassign.
+  </Step>
+  <Step title="Select the new role">
+    A dropdown replaces the badge. Choose from **Administrador**, **Vendedor**, or **Cliente**.
+  </Step>
+  <Step title="Save">
+    Click **Guardar**. The role badge updates immediately and a success notification confirms the change. Click **Cancelar** to abandon the edit.
+  </Step>
+</Steps>
+
+### Activating and deactivating accounts
+
+Click the toggle icon in the Actions column to flip a user's active status:
+- Active users show a red toggle (click to deactivate)
+- Inactive users show a green toggle (click to reactivate)
+
+A notification confirms the action.
+
+### Role summary cards
+
+Three cards below the table show the total count of Administrators, Sellers, and Clients at a glance.
+
+## Seller metrics (`/admin/vendedores`)
+
+The seller metrics page provides a comparative view of all seller accounts.
+
+**Bar chart** — compares total sales across all sellers by first name.
+
+**Seller performance table** — columns:
+
+| Column | Details |
+|---|---|
+| **Vendedor** | Avatar initial, name, and email |
+| **Ventas Totales** | Cumulative revenue in COP |
+| **Pedidos** | Total and completed order counts |
+| **Ticket Promedio** | Average order value |
+| **Reportes** | Quality report count with color coding (green = 0, yellow = 1–2, red = 3+) |
+| **Estado** | Active / Inactive badge |
+
+Click any seller row to expand an inline detail panel showing: Ingresos Generados, Pedidos Completados (with pending count), Ticket Promedio, and Reportes Recibidos (with report rate %).
+
+**Summary section** at the bottom shows: Best Seller, Ventas Promedio per seller, and Total Reportes across all sellers.
+
+## Client metrics (`/admin/clientes`)
+
+The client metrics page segments buyers by lifetime spend and ranks the top 10.
+
+**Segmentation cards:**
+
+| Segment | Spend range |
+|---|---|
+| **Clientes VIP** | Over $1,000,000 COP |
+| **Clientes Regulares** | $300,000 – $1,000,000 COP |
+| **Clientes Nuevos** | Under $300,000 COP |
+
+Each card also shows the segment's aggregate spend.
+
+**Top 10 Clients table** — sorted by total spend, columns include: rank, name/email, total spent, purchase count, average order value, purchase frequency (days between orders), and date of last purchase.
+
+**Summary stats** at the bottom: average customer value, average purchases per customer, best customer name/spend, and average ticket.

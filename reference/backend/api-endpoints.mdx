@@ -1,0 +1,232 @@
+---
+title: "API endpoints"
+description: "REST API endpoints provided by the Java Spring Boot backend"
+---
+
+# API endpoints
+
+Base URL: `http://localhost:8081`
+
+<Note>
+These endpoints are the backend API draft defined in `backend/README.md` and referenced by the React frontend's context files. The Spring Boot implementation lives in `backend-java/`.
+</Note>
+
+## Authentication
+
+### POST /api/login
+
+Authenticates a user and returns the user object.
+
+**Request body**
+
+<ParamField body="email" type="string" required>
+  The user's email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  The user's plain-text password. The backend compares against the stored SHA-256 hash.
+</ParamField>
+
+**Example request**
+
+```bash
+curl -X POST http://localhost:8081/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@ddtextil.com", "password": "admin123"}'
+```
+
+**Success response** (`200 OK`)
+
+```json
+{
+  "success": true,
+  "user": {
+    "id": "uuid",
+    "name": "Admin",
+    "email": "admin@ddtextil.com",
+    "role": "administrador"
+  }
+}
+```
+
+**Error response** (`401`)
+
+```json
+{
+  "success": false,
+  "error": "Credenciales inválidas"
+}
+```
+
+---
+
+### POST /api/register
+
+Creates a new client account.
+
+**Request body**
+
+<ParamField body="name" type="string" required>
+  Full name of the new user.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Email address — must be unique.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Password (minimum 6 characters). Stored as SHA-256 hash.
+</ParamField>
+
+**Example request**
+
+```bash
+curl -X POST http://localhost:8081/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Jane Doe", "email": "jane@example.com", "password": "secret123"}'
+```
+
+---
+
+## Products
+
+### GET /api/products
+
+Returns the full product catalog. Public endpoint — no authentication required.
+
+**Query parameters**
+
+<ParamField query="category" type="string">
+  Filter by product category slug.
+</ParamField>
+
+<ParamField query="featured" type="boolean">
+  When `true`, returns only featured products.
+</ParamField>
+
+**Example request**
+
+```bash
+curl http://localhost:8081/api/products
+```
+
+**Response**
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Tela de Algodón Premium",
+    "category": "algodon",
+    "price": 25000,
+    "stock": 150,
+    "featured": true,
+    "description": "...",
+    "images": ["..."]
+  }
+]
+```
+
+---
+
+### GET /api/products/{id}
+
+Returns a single product by ID. Public endpoint.
+
+```bash
+curl http://localhost:8081/api/products/1
+```
+
+---
+
+### POST /api/products
+
+Creates a new product. Requires role `ROLE_SELLER` or `ROLE_ADMIN`.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+```
+
+<ParamField body="name" type="string" required>
+  Product name.
+</ParamField>
+
+<ParamField body="price" type="number" required>
+  Price in Colombian Pesos (COP).
+</ParamField>
+
+<ParamField body="stock" type="number" required>
+  Initial stock quantity in meters.
+</ParamField>
+
+<ParamField body="category" type="string" required>
+  Category slug (e.g., `algodon`, `seda`, `lino`).
+</ParamField>
+
+<ParamField body="sellerId" type="string" required>
+  UUID of the seller creating the product.
+</ParamField>
+
+---
+
+### PUT /api/products/{id}
+
+Updates an existing product. Requires role `ROLE_SELLER` or `ROLE_ADMIN`.
+
+```bash
+curl -X PUT http://localhost:8081/api/products/1 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"price": 28000, "stock": 120}'
+```
+
+---
+
+## Orders
+
+### POST /api/orders
+
+Places a new order. Requires role `ROLE_CLIENT`.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt_token>
+```
+
+<ParamField body="items" type="array" required>
+  Array of cart items to order.
+</ParamField>
+
+<ParamField body="shippingAddress" type="object" required>
+  Shipping address object with street, city, department, and postal code.
+</ParamField>
+
+<ParamField body="totalAmount" type="number" required>
+  Order total in COP including shipping and IVA.
+</ParamField>
+
+---
+
+### GET /api/orders/my-orders
+
+Returns the authenticated client's order history. Requires role `ROLE_CLIENT`.
+
+```bash
+curl http://localhost:8081/api/orders/my-orders \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+### GET /api/orders
+
+Returns all orders across the platform. Requires role `ROLE_ADMIN`.
+
+```bash
+curl http://localhost:8081/api/orders \
+  -H "Authorization: Bearer <token>"
+```

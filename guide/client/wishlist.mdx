@@ -1,0 +1,105 @@
+---
+title: "Wishlist and project calculator"
+description: "Save fabrics to your wishlist and calculate project requirements"
+---
+
+The Collection section (`Mi Colección`) gives you two tools for planning fabric purchases: a wishlist to bookmark fabrics you want to buy later, and a project calculator that tells you exactly how many meters to order.
+
+## Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/cliente/coleccion` | `Collection/Wishlist` | Virtual fabric sample board |
+| `/cliente/coleccion/calculadora` | `Collection/ProjectCalculator` | Yardage calculator by project type |
+
+---
+
+## Wishlist (`/cliente/coleccion`)
+
+The wishlist — called **Muestrario Virtual** in the UI — stores fabrics you have saved from the catalog, organized into project categories.
+
+### Category tabs
+
+Every wishlist item belongs to a category (e.g., *Cortinas*, *Vestidos*, *Muebles*). Tabs above the grid let you filter by category. You can create a new category by clicking **Nueva Categoría** and typing a name such as *Tapicería* or *Decoración*.
+
+### Wishlist item cards
+
+Each card displays:
+
+- Fabric name, fabric type, and price per meter (COP)
+- **Category** tag in the top-left corner of the image
+- **Notes** — a free-text field you can add or edit per item (stored per wishlist entry, not on the product)
+- **Date added** shown at the bottom of the card
+
+### Out-of-stock handling
+
+If a product's stock reaches zero, the card shows an **Agotado** overlay and replaces the cart button with a **Avisar disponibilidad** toggle. When enabled, the label changes to **Te avisaremos**, indicating you will be notified when the fabric is back in stock.
+
+### Available actions
+
+| Action | How |
+|--------|-----|
+| Add to cart | Click **Agregar al Carrito** (only shown when in stock) |
+| Add/edit notes | Click **Añadir nota** or the existing note text |
+| Remove item | Hover the card and click the red trash icon (top-right) |
+| Enable restock alert | Click **Avisar disponibilidad** on an out-of-stock card |
+
+---
+
+## Project calculator (`/cliente/coleccion/calculadora`)
+
+The calculator estimates how many meters of fabric you need for a specific sewing or decorating project. It accounts for fabric width and adds a 10 % safety margin to the result.
+
+### Supported project types
+
+| Key | Project name | Required inputs |
+|-----|-------------|----------------|
+| `skirt_circular` | Falda Circular | Cintura (cm), Largo deseado (cm) |
+| `skirt_straight` | Falda Recta | Cintura (cm), Cadera (cm), Largo deseado (cm) |
+| `curtains` | Cortinas | Ancho ventana (cm), Alto ventana (cm), Tipo de fruncido |
+| `tablecloth` | Mantel | Largo mesa (cm), Ancho mesa (cm), Caída deseada (cm) |
+| `cushion` | Cojines | Tamaño cojín (cm), Cantidad de cojines |
+| `dress_simple` | Vestido Sencillo | Contorno busto (cm), Largo vestido (cm) |
+
+### Fabric width options
+
+The calculator adjusts the number of fabric panels based on the bolt width you select:
+
+| Width | Common use |
+|-------|------------|
+| 1.10 m | Algodón común |
+| 1.40 m | Telas decorativas |
+| 1.50 m | Estándar |
+| 2.80 m | Cortinas / Sábanas |
+| 3.00 m | Extra ancho |
+
+### How to use the project calculator
+
+<Steps>
+  <Step title="Select your project type">
+    In the left panel, click the project that matches what you are making — for example, **Cortinas** or **Vestido Sencillo**. The form on the right updates immediately to show the required measurement fields for that project.
+  </Step>
+  <Step title="Set the fabric width">
+    In the **Ancho de la tela** dropdown, choose the bolt width of the fabric you plan to buy. If you are unsure, use **1.50 m (Estándar)**.
+  </Step>
+  <Step title="Enter the price per meter">
+    Type the price per meter (COP) in the **Precio por metro** field so the calculator can estimate total cost. The default is $45,000 COP.
+  </Step>
+  <Step title="Fill in your measurements">
+    Enter all the required measurements in centimeters. For curtains, also choose the **Tipo de fruncido**: Simple (1.5×), Doble (2×), or Triple (3×). All fields must be filled before you can calculate.
+  </Step>
+  <Step title="Click Calcular Metraje">
+    Press the **Calcular Metraje** button. The result panel shows three values:
+
+    - **Cálculo exacto** — the mathematically precise meters needed
+    - **Recomendado** — rounded up to the nearest 0.1 m, with an additional 10 % margin for cutting errors and shrinkage
+    - **Costo estimado** — the recommended meters × price per meter (COP)
+  </Step>
+  <Step title="Add to cart">
+    Click **Agregar {meters}m al Carrito** in the result panel to add the recommended quantity directly to your shopping cart.
+  </Step>
+</Steps>
+
+<Note>
+  The recommended quantity already includes a **10 % safety margin**. This accounts for cutting errors, pattern matching, and potential fabric shrinkage after washing. It is always safer to order slightly more than you need.
+</Note>

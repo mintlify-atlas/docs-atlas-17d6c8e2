@@ -1,0 +1,120 @@
+---
+title: "Support tickets"
+description: "Submit bug reports and manage your support requests"
+---
+
+The support section lets you report problems with delivered orders and track how your cases are being handled. The D&D Textil team responds within 24 hours, and high-priority issues are addressed within hours.
+
+## Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/cliente/soporte/nuevo` | `Support/NewReport` | Submit a new issue report |
+| `/cliente/soporte/tickets` | `Support/MyTickets` | View all your tickets and the conversation thread |
+
+---
+
+## Creating a new report (`/cliente/soporte/nuevo`)
+
+You can only file a report for orders that have already been **delivered** (`status: delivered`). If you navigate to the new report form from the order history or tracking page, the order ID is pre-filled via the `?orderId=` query parameter.
+
+### Report form fields
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| Pedido (order) | Yes | Dropdown of your delivered orders |
+| Tipo de problema (issue type) | Yes | Select one of the eight predefined categories |
+| Descripción | Yes | Free text, up to 500 characters |
+| Fotos | No | Up to 5 images — JPEG, PNG, etc. |
+
+### Issue types and priority
+
+The issue type you select determines the ticket priority:
+
+| Issue | Priority |
+|-------|----------|
+| Manchas en la tela | High (Urgente) |
+| Color incorrecto | High (Urgente) |
+| Metraje incorrecto | High (Urgente) |
+| Tela dañada en transporte | High (Urgente) |
+| Tela equivocada | High (Urgente) |
+| Hilos sueltos | Medium (Normal) |
+| Calidad diferente a la esperada | Medium (Normal) |
+| Otro problema | Low (Bajo) |
+
+When you select a **High** priority issue, a red banner appears on the form confirming the case will be treated urgently.
+
+### Submitting the report
+
+Once all required fields are filled, click **Enviar Reporte**. The form validates locally before submitting. On success you are redirected to `/cliente/soporte/tickets` and a confirmation notification is shown.
+
+The created ticket object contains:
+
+```js
+{
+  id: Date.now(),
+  clientId: user.id,
+  orderId: selectedOrder,       // integer
+  subject: issue.label,
+  issueType: issueType,         // e.g. "stain", "wrong_meters"
+  description: description,
+  priority: issue.priority,     // "high" | "medium" | "low"
+  status: 'open',
+  photos: [...],
+  createdAt: new Date().toISOString(),
+  responses: []
+}
+```
+
+<Tip>
+  Include as much detail as possible in your description. Mention the size of the defect, where on the fabric it appears, and how it compares to what you expected. Attaching photos is the single most effective way to speed up resolution — issues with photos are resolved faster than those without.
+</Tip>
+
+---
+
+## My tickets (`/cliente/soporte/tickets`)
+
+The tickets page lists every report you have ever submitted. You can filter by status using the tab bar at the top: **Todos**, **Abiertos**, **En Revisión**, and **Resueltos**.
+
+### Ticket statuses
+
+| Status key | Display label | Meaning |
+|------------|--------------|----------|
+| `open` | Abierto | Your report has been received |
+| `in_progress` | En Revisión | The seller or admin is reviewing your case |
+| `resolved` | Resuelto | Your case has been resolved |
+| `closed` | Cerrado | The ticket has been administratively closed |
+
+### Ticket card
+
+Each ticket card shows:
+
+- **Subject** — the issue type label
+- **Status badge** — colored by state
+- Ticket number, linked order number, and creation date
+- A response count indicator (e.g., `💬 2 respuesta(s)`) when replies exist
+
+Click anywhere on the ticket header to expand it and read the full conversation thread.
+
+### Expanded ticket view
+
+When you expand a ticket you see:
+
+1. **Your original report** — the description and any attached photos
+2. **Conversation thread** — responses from the seller (`Vendedor`) or D&D Textil support (`Soporte`), with timestamps
+3. **Resolution panel** — when `status` is `resolved`, a green panel shows the resolution details (e.g., *"Se realizó reembolso completo de $185,000 COP"*)
+4. **Reply box** — for tickets with status `open` or `in_progress`, a text input lets you send a follow-up message
+
+### Response sources
+
+Messages in the conversation thread are labeled by their sender:
+
+| `from` value | Display label | Badge color |
+|-------------|--------------|-------------|
+| `admin` | Soporte | Purple |
+| `seller` | Vendedor | Blue |
+| `client` | Tú | Gray |
+
+<Note>
+  You can submit a new report at any time by clicking the **Nuevo Reporte** button in the top-right corner of the tickets page, or by navigating directly to `/cliente/soporte/nuevo`.
+</Note>

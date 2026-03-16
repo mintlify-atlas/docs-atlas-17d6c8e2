@@ -1,0 +1,109 @@
+---
+title: "Vendor moderation"
+description: "Review and approve seller applications and monitor vendor performance"
+---
+
+The moderation section gives you two tools for keeping your seller ecosystem healthy: an approval queue for new product submissions, and a performance dashboard where you can adjust commissions and suspend problematic sellers.
+
+## Routes
+
+| Route | View |
+|---|---|
+| `/admin/moderacion/aprobacion` | Product approval queue |
+| `/admin/moderacion/vendedores` | Vendor performance and controls |
+
+---
+
+## Approval queue (`/admin/moderacion/aprobacion`)
+
+Every product submitted by a seller enters the queue with a `pending` status before it appears in the public catalog.
+
+### Filtering by seller
+
+A dropdown at the top lets you filter the queue by seller name. The default option shows all pending products with a count in parentheses. Each seller option also shows their individual pending count.
+
+### Product cards
+
+Pending products render as a responsive grid of cards. Each card shows:
+
+- Product image (full aspect-square)
+- **Pendiente** badge (yellow) in the top-right corner
+- Product name, category, and price
+- Description (truncated to 2 lines)
+- Seller name with avatar initial and submission date
+- Three action buttons: **Ver**, **Aprobar**, **Rechazar**
+
+### Reviewing a product
+
+<Steps>
+  <Step title="Preview the product">
+    Click **Ver** to open a full-screen modal with the product image, name, price, description, and seller details.
+  </Step>
+  <Step title="Approve or reject">
+    Click **Aprobar** (green) to publish the product to the catalog immediately. The `ProductContext` is refreshed so the catalog updates in real time.
+  </Step>
+  <Step title="Reject with a reason">
+    Click **Rechazar** (red) to open the rejection modal. Enter a clear reason (e.g. "Las fotos no muestran claramente el producto") and click **Confirmar Rechazo**. The reason is saved so the seller can address it.
+  </Step>
+</Steps>
+
+<Note>
+Approval syncs the product to the live catalog via `refreshProducts()`. Rejection requires a non-empty reason — the confirm button is disabled until you type one.
+</Note>
+
+### Empty state
+
+When the queue is empty a green confirmation card reads **"¡Todo al día!"**.
+
+---
+
+## Vendor performance (`/admin/moderacion/vendedores`)
+
+This view shows aggregated metrics for every seller and gives you controls to adjust their commission rate or suspend their account.
+
+### Summary cards
+
+| Card | Description |
+|---|---|
+| **Total Vendedores** | All users with the `seller` role |
+| **Vendedores Activos** | Sellers not currently suspended |
+| **Suspendidos** | Sellers with an active suspension |
+| **Comisión Promedio** | Mean commission rate across all sellers |
+
+### Sales comparison chart
+
+A recharts `BarChart` compares the top 5 sellers on two axes: **Ventas (miles COP)** (left, purple) and **Pedidos** (right, amber).
+
+### Seller table
+
+| Column | Description |
+|---|---|
+| **Vendedor** | Avatar initial, name, and email |
+| **Ventas** | Total sales in COP |
+| **Pedidos** | Order count badge |
+| **Comisión %** | Click the value to edit it inline; press Enter or click away to save |
+| **Reportes** | Bug report count with warning icon if above 3 |
+| **Estado** | Active (green) or Suspendido (red) with reason if suspended |
+| **Control** | Toggle button — red to suspend, green to reactivate |
+
+### Suspending a seller
+
+<Steps>
+  <Step title="Click the suspend toggle">
+    In the Control column, click the red toggle for the seller you want to suspend.
+  </Step>
+  <Step title="Enter a suspension reason">
+    A modal asks for a mandatory reason (e.g. "Múltiples reportes de calidad de productos"). The confirm button is disabled until the field is filled.
+  </Step>
+  <Step title="Confirm">
+    Click **Confirmar Suspensión**. The seller's row becomes dimmed and their status badge changes to **Suspendido** with the reason shown below.
+  </Step>
+</Steps>
+
+### Reactivating a seller
+
+For a suspended seller, click the green toggle in the Control column. No reason is required — the suspension is lifted immediately.
+
+### Editing a commission rate
+
+Click the commission percentage value in the **Comisión %** column. An inline number input appears. Enter the new rate (numeric) and press Enter or click away. The new rate is saved immediately.

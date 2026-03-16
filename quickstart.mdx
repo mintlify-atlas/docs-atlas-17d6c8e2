@@ -1,80 +1,118 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick start"
+description: "Get D&D Textil running locally in minutes"
 ---
 
-## Get started in three steps
+<Tip>
+  **Windows users:** A `iniciar_tienda.bat` script is included in the repository root. Double-click it to open the browser and start the frontend dev server in one step — no terminal required.
+</Tip>
 
-Get your documentation site running locally and make your first customization.
+<Steps>
+  <Step title="Prerequisites">
+    Make sure you have the following installed before you begin:
 
-### Step 1: Set up your local environment
+    | Requirement | Minimum version |
+    |-------------|----------------|
+    | Node.js | 18+ |
+    | Java | 17+ |
+    | PostgreSQL | any recent stable release |
+    | Git | any recent stable release |
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    Verify your versions:
 
-### Step 2: Deploy your changes
+    ```bash
+    node --version    # should print v18.x or higher
+    java --version    # should print 17 or higher
+    psql --version    # should print psql (PostgreSQL) ...
+    git --version
+    ```
+  </Step>
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/Jhonmoreno000/PROYECTO-SENA-TIENDA-TEXTIL-
+    cd PROYECTO-SENA-TIENDA-TEXTIL-
+    ```
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="Install frontend dependencies">
+    From the repository root, install the Node.js dependencies:
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    ```bash
+    npm install
+    ```
 
-### Step 3: Go live
+    This installs React 18, Vite, Tailwind CSS, React Router v6, React Hook Form, Zod, Framer Motion, Recharts, and the other packages listed in `package.json`.
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="Configure the environment">
+    The frontend communicates with the Java backend over HTTP. The backend must be reachable at `http://localhost:8081`. This address is hardcoded in `src/context/AuthContext.jsx` (login and register endpoints) and `src/context/ProductContext.jsx` (product CRUD), among others.
 
-## Next steps
+    Create a PostgreSQL database for the application and configure your backend's `application.properties` (or `application.yml`) with the database connection details before starting the backend.
 
-Now that you have your docs running, explore these key features:
+    The Vite dev server also proxies `/uploads` requests to `http://localhost:8081`:
 
-<CardGroup cols={2}>
+    ```javascript vite.config.js
+    proxy: {
+      '/uploads': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      }
+    }
+    ```
+  </Step>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+  <Step title="Start the backend">
+    Navigate to the backend directory and start the Spring Boot application. The exact command depends on your build tool:
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+    <CodeGroup>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+    ```bash Maven
+    cd backend-java
+    ./mvnw spring-boot:run
+    ```
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+    ```bash Gradle
+    cd backend-java
+    ./gradlew bootRun
+    ```
 
-</CardGroup>
+    </CodeGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+    The API will be available at `http://localhost:8081`. Wait until you see the Spring Boot startup banner in the console before proceeding.
+  </Step>
+
+  <Step title="Start the frontend dev server">
+    From the repository root, run:
+
+    ```bash
+    npm run dev
+    ```
+
+    Vite starts the development server and opens the browser automatically. The application is available at:
+
+    ```
+    http://localhost:3001
+    ```
+
+    <Info>
+      The Vite config sets `port: 3001` with `strictPort: false`, so if 3001 is already in use, Vite will pick the next available port and display it in the terminal.
+    </Info>
+  </Step>
+
+  <Step title="Log in with demo credentials">
+    Use the following accounts to explore each role in the application:
+
+    | Role | Email | Password |
+    |------|-------|----------|
+    | Admin | `admin@ddtextil.com` | `admin123` |
+    | Seller | `vendedor@ddtextil.com` | `vendedor123` |
+    | Client | `cliente@ddtextil.com` | `cliente123` |
+
+    After a successful login, the app normalizes backend role values (`administrador` → `admin`, `vendedor` → `seller`, `cliente` → `client`) and stores the session in `localStorage` under the key `authUser`.
+
+    <Note>
+      Checkout and payment are simulated. No real payment processing takes place, and orders are not charged. Order state is stored in the backend database but no payment gateway is integrated.
+    </Note>
+  </Step>
+</Steps>

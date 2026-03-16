@@ -1,0 +1,94 @@
+---
+title: Login and registration
+description: How to authenticate and create a new account
+---
+
+## Login
+
+The login page is at `/login`. It renders a two-field form:
+
+| Field | Type | Required |
+|---|---|---|
+| Email address | `email` | Yes |
+| Password | `password` | Yes |
+
+On submit, the form calls `login(email, password)` from `AuthContext`. After a successful login, the app reads the normalized role from `localStorage` and redirects you to your role's default page.
+
+<Steps>
+  <Step title="Enter your credentials">
+    Type your email address and password into the form fields.
+  </Step>
+  <Step title="Submit the form">
+    Click **Iniciar Sesión**. The frontend sends a `POST` request to the backend.
+
+    ```http
+    POST http://localhost:8081/api/login
+    Content-Type: application/json
+
+    { "email": "admin@ddtextil.com", "password": "admin123" }
+    ```
+  </Step>
+  <Step title="Backend validates and responds">
+    Spring Boot checks the SHA-256 hash of your password against the stored hash. On success it returns a JSON object with `success: true` and a `user` payload.
+  </Step>
+  <Step title="Frontend stores the session">
+    The frontend normalizes the role string, removes `password_hash`, and writes the user object to `localStorage` under the key `authUser`.
+  </Step>
+  <Step title="Redirect to your dashboard">
+    You are redirected based on your role:
+
+    | Role | Redirect |
+    |---|---|
+    | `admin` | `/admin` |
+    | `seller` | `/vendedor` |
+    | `client` | `/mi-cuenta` |
+  </Step>
+</Steps>
+
+<Note>
+  The login endpoint is `POST http://localhost:8081/api/login`. Make sure the Spring Boot backend is running on port **8081** before you attempt to sign in.
+</Note>
+
+## Registration
+
+The registration page is at `/registro`. It renders a four-field form:
+
+| Field | Type | Required | Validation |
+|---|---|---|---|
+| Full name | `text` | Yes | — |
+| Email address | `email` | Yes | — |
+| Password | `password` | Yes | Minimum 6 characters |
+| Confirm password | `password` | Yes | Must match password |
+
+The frontend validates that both password fields match and that the password is at least 6 characters long before sending anything to the server. On success, `register()` automatically calls `login()` with the same credentials, so you are signed in immediately after creating your account.
+
+<Note>
+  The registration endpoint is `POST http://localhost:8081/api/register`. New accounts are always assigned the `client` role.
+</Note>
+
+The payload sent to the backend contains only three fields:
+
+```js
+body: JSON.stringify({
+    name: userData.name,
+    email: userData.email,
+    password: userData.password
+})
+```
+
+New passwords are hashed with SHA-256 on the backend before being stored, consistent with all existing accounts.
+
+## Demo credentials
+
+The following accounts are seeded in the development database. Use them to try out each role without registering.
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@ddtextil.com` | `admin123` |
+| Seller | `vendedor@ddtextil.com` | `vendedor123` |
+| Seller | `maria.gonzalez@ddtextil.com` | `vendedor123` |
+| Seller | `ana.martinez@ddtextil.com` | `vendedor123` |
+| Client | `cliente@ddtextil.com` | `cliente123` |
+| Client | `laura.sanchez@email.com` | `cliente123` |
+
+The login page also shows one-click buttons for the **Admin**, **Seller (vendedor)**, and **Client** accounts that fill in the credentials automatically.

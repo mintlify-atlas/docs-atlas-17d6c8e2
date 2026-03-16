@@ -1,0 +1,131 @@
+---
+title: "Theming and customization"
+description: "Customize colors, fonts, and animations via Tailwind CSS configuration"
+---
+
+# Theming and customization
+
+All visual customization is done through `tailwind.config.js`. The application uses Tailwind CSS v3 with a `class`-based dark mode strategy.
+
+## Color palette
+
+Three color scales are defined: `primary` (orange), `secondary` (zinc/gray), and `accent` (mirrors primary).
+
+```javascript tailwind.config.js
+colors: {
+  primary: {
+    50:  '#fff7ed',
+    100: '#ffedd5',
+    200: '#fed7aa',
+    300: '#fdba74',
+    400: '#fb923c',
+    500: '#f97316',  // Main brand orange
+    600: '#ea580c',
+    700: '#c2410c',
+    800: '#9a3412',
+    900: '#7c2d12',
+  },
+  secondary: {
+    50:  '#fafafa',
+    100: '#f4f4f5',
+    200: '#e4e4e7',
+    300: '#d4d4d8',
+    400: '#a1a1aa',
+    500: '#71717a',
+    600: '#52525b',
+    700: '#3f3f46',
+    800: '#27272a',
+    900: '#18181b',
+  },
+}
+```
+
+To change the brand color, replace the `primary` values with your chosen orange/color scale.
+
+## Dark mode
+
+Dark mode is enabled by adding the `dark` class to the `<html>` element. The `useDarkMode` hook handles this:
+
+```javascript src/hooks/useDarkMode.js
+export function useDarkMode() {
+  const [darkMode, setDarkMode] = useLocalStorage('darkMode', false);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  return [darkMode, () => setDarkMode(!darkMode)];
+}
+```
+
+The hook persists the user's preference in `localStorage` under the key `darkMode`. To use dark mode variants in your components:
+
+```jsx
+<div className="bg-white dark:bg-secondary-900 text-secondary-900 dark:text-white">
+  Content
+</div>
+```
+
+## Typography
+
+Two font families are configured:
+
+| Name | Fonts | Usage |
+|------|-------|-------|
+| `font-sans` | Inter, system-ui, sans-serif | Body text (default) |
+| `font-display` | Outfit, Inter, sans-serif | Headings and display text |
+
+These fonts are loaded from Google Fonts. Add the following to your `index.html` `<head>` to enable them:
+
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+```
+
+## Animations
+
+Five custom Tailwind CSS animations are defined:
+
+| Class | Duration | Effect |
+|-------|----------|--------|
+| `animate-fade-in` | 0.5s | Fade from opacity 0 to 1 |
+| `animate-slide-up` | 0.5s | Slide up 20px while fading in |
+| `animate-slide-down` | 0.5s | Slide down 20px while fading in |
+| `animate-scale-in` | 0.3s | Scale from 90% to 100% while fading in |
+| `animate-float` | 3s (infinite) | Gentle vertical float ±10px |
+
+Example usage:
+
+```jsx
+<div className="animate-fade-in">
+  This fades in on mount
+</div>
+
+<div className="animate-float">
+  This floats continuously
+</div>
+```
+
+<Tip>
+For more complex animations — such as page transitions and interactive gestures — use **Framer Motion** (`framer-motion` package), which is already installed. Reserve Tailwind animations for simple CSS transitions.
+</Tip>
+
+## Background gradients
+
+Two gradient utilities are available:
+
+```jsx
+<div className="bg-gradient-radial from-primary-100 to-white">
+  Radial gradient background
+</div>
+
+<div className="bg-gradient-conic from-primary-500 via-accent-400 to-primary-500">
+  Conic gradient background
+</div>
+```

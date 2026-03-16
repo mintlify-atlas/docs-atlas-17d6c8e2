@@ -1,0 +1,109 @@
+---
+title: "Admin dashboard"
+description: "Full platform control — users, inventory, analytics, and system config"
+---
+
+The admin dashboard gives you complete visibility and control over D&D Textil. From a single view you can track platform-wide metrics, navigate to any management module, and monitor recent activity.
+
+<Info>
+The admin panel is only accessible to accounts with the `admin` role. Sellers cannot access `/admin` routes.
+</Info>
+
+## Route
+
+`/admin` — requires role `admin`.
+
+## Global metrics
+
+Four metric cards appear at the top of the overview:
+
+| Metric | Description |
+|---|---|
+| **Ventas Totales** | Platform-wide revenue with a trend indicator (+12.5%) |
+| **Total Usuarios** | All registered users, with active seller count as subtitle |
+| **Pedidos** | Total order count with average ticket value |
+| **Reportes Calidad** | Total quality reports; subtitle shows open vs. in-review/resolved split |
+
+A **7-day sales line chart** follows the metric cards, then a two-column layout shows the **Top 5 Sellers** ranking and the **Recent Activity** feed (last 6 platform events).
+
+## Module navigation
+
+<CardGroup cols={3}>
+  <Card title="Users" icon="users" href="/guide/admin/user-management">
+    Manage all user accounts, assign roles, and activate or deactivate accounts.
+  </Card>
+  <Card title="Products" icon="package" href="/guide/admin/user-management">
+    View and edit all products across every seller. Search and filter by category.
+  </Card>
+  <Card title="Inventory" icon="layers" href="/guide/admin/inventory">
+    Batch control, waste tracking, stock alert thresholds, and movement history.
+  </Card>
+  <Card title="Analytics" icon="trending-up" href="/guide/admin/analytics">
+    Sales heat maps, inventory rotation, returns analysis, and revenue projections.
+  </Card>
+  <Card title="Vendor moderation" icon="shield" href="/guide/admin/moderation">
+    Approval queue for new products and performance monitoring for sellers.
+  </Card>
+  <Card title="Support" icon="message-square" href="/guide/admin/support">
+    Manage support tickets and create discount coupons for customers.
+  </Card>
+  <Card title="Carousel" icon="layout" href="/guide/admin/overview">
+    Add, edit, and remove homepage carousel slides (`/admin/carrusel`).
+  </Card>
+  <Card title="Home page" icon="home" href="/guide/admin/overview">
+    Toggle visibility of homepage sections: Hero, Carousel, Featured Products, Benefits (`/admin/home`).
+  </Card>
+  <Card title="System config" icon="settings" href="/guide/admin/overview">
+    Site name, theme colors, tax rate, shipping costs, and global banner (`/admin/configuracion`).
+  </Card>
+</CardGroup>
+
+## Sidebar navigation
+
+The admin sidebar is defined in `adminDashboardLinks.js` and provides the following top-level groups:
+
+| Group | Routes |
+|---|---|
+| Resumen | `/admin` |
+| Usuarios | `/admin/usuarios`, `/admin/vendedores`, `/admin/clientes` |
+| Catálogo | `/admin/productos`, `/admin/carrusel`, `/admin/home` |
+| Inventario | `/admin/inventario/lotes`, `/admin/inventario/merma`, `/admin/inventario/alertas`, `/admin/inventario/historial` |
+| Moderación | `/admin/moderacion/aprobacion` (badge: 3), `/admin/moderacion/vendedores` |
+| Analytics | `/admin/analytics/mapa-ventas`, `/admin/analytics/rotacion`, `/admin/analytics/devoluciones`, `/admin/analytics/proyeccion` |
+| Soporte | `/admin/soporte/tickets` (badge: 12), `/admin/soporte/cupones` |
+| Reportes | `/admin/reportes` |
+| Configuración | `/admin/configuracion` |
+
+## Carousel management (`/admin/carrusel`)
+
+The carousel editor lets you maintain the homepage promotional slides. Each slide has a **title**, **subtitle**, and **image**. You can add a new slide with the **Agregar Slide** button, edit an existing slide inline (title, subtitle, and image upload), or delete a slide after confirming the prompt.
+
+## Home page visibility (`/admin/home`)
+
+Toggle four homepage sections on or off without a deployment:
+
+| Section ID | Name | Default |
+|---|---|---|
+| `hero` | Hero Section | Visible |
+| `carousel` | Carrusel de Promociones | Visible |
+| `featured` | Productos Destacados | Visible |
+| `benefits` | Sección de Beneficios | Visible |
+
+Changes are persisted to the API at `POST /api/config` with key `home_sections_config`.
+
+## System configuration (`/admin/configuracion`)
+
+The system config page exposes global platform settings:
+
+| Setting | Description |
+|---|---|
+| **Nombre del Sitio** | Display name for the storefront |
+| **Color Primario / Secundario / Acento** | Hex color pickers for the brand palette |
+| **Tasa de Impuesto (%)** | Applied to all sales at checkout |
+| **Costo de Envío ($)** | Flat shipping fee in COP |
+| **Umbral Envío Gratis ($)** | Order total above which shipping is waived |
+| **Umbral Stock Bajo (metros)** | Meters threshold that triggers low-stock badges |
+| **Banner Global** | Enable/disable a site-wide announcement bar with message and type (info, success, warning) |
+| **Modo Oscuro por Defecto** | Whether new user accounts start in dark mode |
+
+Click **Guardar Configuración** to persist all changes.

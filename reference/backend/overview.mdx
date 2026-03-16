@@ -1,0 +1,85 @@
+---
+title: "Backend overview"
+description: "Java Spring Boot backend architecture, security model, and database layer"
+---
+
+# Backend overview
+
+The D&D Textil backend is a **Java Spring Boot 3** application that implements a REST API for the React frontend. It follows a **Hexagonal Architecture** (Ports and Adapters) to keep business logic isolated from infrastructure concerns.
+
+## Technology stack
+
+| Technology | Version | Purpose |
+|------------|---------|----------|
+| Java | 17+ | Runtime |
+| Spring Boot | 3.x | Application framework |
+| Spring Security | 6.x | Authentication and authorization |
+| PostgreSQL | 14+ | Relational database |
+| Maven or Gradle | — | Build tool |
+| JWT | — | Stateless authentication tokens |
+
+## Hexagonal architecture
+
+The backend organizes code into three concentric layers:
+
+```
+src/main/java/com/ddtextil/
+├── application/           # Use cases
+│   ├── ports/            # Input/output port interfaces
+│   └── services/         # Service implementations
+├── domain/               # Pure business logic
+│   ├── model/            # Domain entities
+│   └── service/          # Domain services
+├── infrastructure/       # Adapters
+│   ├── config/           # Spring configuration
+│   ├── persistence/      # JPA/Hibernate repositories
+│   └── rest/             # REST controllers (inbound adapters)
+└── DdTextilApplication.java
+```
+
+**Domain** — knows nothing about HTTP or databases. Contains entities like `Product`, `Order`, `User`.
+
+**Application** — defines use cases (e.g., `PlaceOrderUseCase`) as port interfaces, implemented by services that call domain logic.
+
+**Infrastructure** — adapters that translate between the external world and the application ports. REST controllers call application ports; JPA repositories implement persistence ports.
+
+## Authentication
+
+The backend uses **JWT (JSON Web Tokens)** for stateless authentication:
+
+1. Client sends `POST /api/login` with email and password.
+2. Spring Security validates credentials against the PostgreSQL `users` table (SHA-256 hashed).
+3. On success, the server returns a JWT in the response body.
+4. The React frontend stores the user object in localStorage.
+5. Subsequent protected API calls include the token in the `Authorization: Bearer <token>` header.
+
+## User roles
+
+Spring Security enforces three roles:
+
+| Spring Security Role | Frontend Role | Access Level |
+|---------------------|---------------|-------------|
+| `ROLE_CLIENT` | `client` | Shopping, orders, personal dashboard |
+| `ROLE_SELLER` | `seller` | Product management, order fulfillment |
+| `ROLE_ADMIN` | `admin` | Full platform access |
+
+<Note>
+The React frontend normalizes role names from the API response: `administrador` → `admin`, `vendedor` → `seller`, `cliente` → `client`.
+</Note>
+
+## Running the backend
+
+<CodeGroup>
+
+```bash Maven
+# From the backend-java directory
+mvn spring-boot:run
+```
+
+```bash Gradle
+./gradlew bootRun
+```
+
+</CodeGroup>
+
+The backend listens on **port 8081** by default. The frontend dev server proxies `/uploads` requests to `http://localhost:8081`.

@@ -1,0 +1,87 @@
+---
+title: "Order management"
+description: "View your order history and track current deliveries"
+---
+
+The orders section gives you a complete view of everything you have purchased from D&D Textil. You can browse your full purchase history, filter by status, download invoices, and follow each active shipment step-by-step.
+
+## Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/cliente/pedidos` | `Orders/OrderHistory` | Full order history with search and filters |
+| `/cliente/pedidos/rastreo` | `Orders/OrderTracking` | Shipment tracking by order or tracking number |
+
+## Order history (`/cliente/pedidos`)
+
+The order history page lists all your purchases sorted from newest to oldest. A row of four summary cards at the top shows:
+
+- **Total Pedidos** — total count of all your orders
+- **En Proceso** — orders with status `paid`, `cutting`, or `packed`
+- **Enviados** — orders with status `shipped`
+- **Entregados** — orders with status `delivered`
+
+### Filtering and search
+
+You can narrow the list using:
+
+- **Text search** — matches against the order ID or tracking number (`guía`)
+- **Status filter** — a dropdown to show only orders in a specific state
+
+### Order card actions
+
+Each order card shows the order ID, date, status badge, total (COP), and number of items. From the card you can:
+
+- **Ver Detalles** — opens the tracking page for that order (`/cliente/pedidos/rastreo?id={id}`)
+- **Factura** — downloads the invoice (mock PDF in the current build)
+- **Reportar Problema** — navigates to `/cliente/soporte/nuevo?orderId={id}` (only visible for `delivered` orders)
+
+## Order status values
+
+The following statuses are defined in `Orders/OrderHistory.jsx`:
+
+| Status key | Display label | Badge color |
+|------------|--------------|-------------|
+| `pending` | Pendiente | Yellow |
+| `paid` | Pagado | Blue |
+| `cutting` | En Corte | Purple |
+| `packed` | Empacado | Indigo |
+| `shipped` | Enviado | Cyan |
+| `delivered` | Entregado | Green |
+| `cancelled` | Cancelado | Red |
+
+## Order tracking (`/cliente/pedidos/rastreo`)
+
+The tracking page accepts either an order ID or a courier tracking number (`guía`). Enter the number in the search box and press **Buscar** to load the shipment details.
+
+When a matching order is found, the page renders:
+
+- A **progress bar** with five milestones shown left to right
+- An **estimated delivery date** if the order has not yet been delivered
+- A **product list** showing fabric name, meters purchased, unit price, and line total
+- A **summary sidebar** with subtotal, IVA (19%), shipping (free), and total
+- A **shipping address** panel with the recipient name and contact phone
+
+### Tracking milestones
+
+The five milestones map directly to the order status values:
+
+| Step | Status key | Icon | Description |
+|------|-----------|------|-------------|
+| 1 | `paid` | Credit card | Pago Recibido — payment confirmed |
+| 2 | `cutting` | Scissors | En Corte — fabric being cut |
+| 3 | `packed` | Package | Empacado — ready for shipment |
+| 4 | `shipped` | Truck | Enviado — in transit |
+| 5 | `delivered` | Home | Entregado — delivered |
+
+A completed step shows a green checkmark. The current step is highlighted in the primary brand color with a ring. Future steps are grayed out.
+
+When the carrier (`courierName`) and a tracking number are present, both are displayed next to the order header. The courier defaults to **Servientrega** when no name is provided.
+
+<Info>
+  Order data is currently sourced from `MetricsContext`, which is seeded with mock data for the demo build. In production this context will be replaced by live API calls. The tracking number and estimated delivery date fields are optional — the UI degrades gracefully when they are absent.
+</Info>
+
+<Note>
+  After a shipment is marked as `delivered`, a **¿Problema con tu pedido? Repórtalo** link appears in the tracking sidebar, taking you directly to the support report form pre-filled with the order ID.
+</Note>

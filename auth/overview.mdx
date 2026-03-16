@@ -1,0 +1,91 @@
+---
+title: Authentication overview
+description: How authentication and session management work in D&D Textil
+---
+
+D&D Textil uses a straightforward token-based authentication flow. The frontend calls the Spring Boot backend, which validates credentials and returns a user object. The frontend then stores that object in `localStorage` to persist the session across page reloads.
+
+## Login flow
+
+When you call `login(email, password)` from `AuthContext`, it sends a `POST` request to the backend:
+
+```js
+const response = await fetch('http://localhost:8081/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+});
+
+const data = await response.json();
+```
+
+If the response is `200 OK` and `data.success` is `true`, the backend returns a user object in `data.user`. The frontend normalizes the role (see below), strips `password_hash` from the object, and stores the result via the `useLocalStorage` hook under the key `authUser`.
+
+## Role normalization
+
+The backend may return role strings in Spanish. The frontend normalizes them to a consistent set of English identifiers before storing the user:
+
+| Backend value | Normalized value |
+|---|---|
+| `administrador` or `admin` | `admin` |
+| `vendedor` | `seller` |
+| `cliente` | `client` |
+
+```js
+let normalizedRole = data.user.role;
+if (normalizedRole === 'administrador' || normalizedRole === 'admin') normalizedRole = 'admin';
+else if (normalizedRole === 'vendedor') normalizedRole = 'seller';
+else if (normalizedRole === 'cliente') normalizedRole = 'client';
+
+const loggedInUser = { ...data.user, role: normalizedRole };
+
+// Keep password_hash out of local storage
+delete loggedInUser.password_hash;
+
+setUser(loggedInUser);
+```
+
+All role checks throughout the app use the normalized values (`admin`, `seller`, `client`).
+
+## Session persistence
+
+The `useLocalStorage` hook initializes the `user` state from `localStorage` on mount. This means that if you already have an `authUser` entry in `localStorage`, you are automatically treated as authenticated when you open or refresh the app — no re-login is required.
+
+The `AuthContext` exposes an `isAuthenticated` boolean derived directly from the stored user:
+
+```js
+const value = {
+    user,
+    isAuthenticated: !!user,
+    login,
+    register,
+    logout,
+    hasRole
+};
+```
+
+## Logout
+
+Calling `logout()` sets the stored user to `null`, which clears the `authUser` key from `localStorage` and immediately marks `isAuthenticated` as `false`:
+
+```js
+const logout = () => {
+    setUser(null);
+    showNotification('info', 'Has cerrado sesión');
+};
+```
+
+There is no server-side session or token revocation — ending the session is entirely client-side.
+
+## Role helper
+
+The `hasRole(roles)` helper lets any component check whether the current user holds a specific role or one of several roles:
+
+```js
+hasRole('admin')           // true if user.role === 'admin'
+hasRole(['admin', 'seller']) // true if user.role is either
+```
+
+<Warning>
+  Passwords in this project are hashed with **SHA-256**, not bcrypt or Argon2. SHA-256 is not a password hashing algorithm — it is fast by design, which makes it unsuitable for production use. This project is a development/learning prototype; do not use it as a security reference for production systems.
+</Warning>

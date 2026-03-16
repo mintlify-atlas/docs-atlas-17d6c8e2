@@ -1,0 +1,104 @@
+---
+title: "Database schema"
+description: "PostgreSQL database tables and relationships for D&D Textil"
+---
+
+# Database schema
+
+D&D Textil uses **PostgreSQL** as its relational database. The SQL schema is located at `BASE DE DATOS/TIENDA DIGITAL TEXTIL.sql` in the repository.
+
+<Note>
+The schema below is the preliminary design documented in `backend/README.md`. The full schema with indexes, triggers, and seed data is in the SQL file.
+</Note>
+
+## Tables
+
+### users
+
+Stores all platform users — clients, sellers, and admins.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `email` | VARCHAR (unique) | Login email address |
+| `password_hash` | VARCHAR | SHA-256 hashed password |
+| `role` | VARCHAR | One of: `cliente`, `vendedor`, `administrador` |
+| `full_name` | VARCHAR | User's display name |
+| `created_at` | TIMESTAMP | Account creation time |
+
+<Warning>
+Passwords are hashed with **SHA-256**, which is a fast hashing algorithm not designed for passwords. For a production deployment, migrate to bcrypt or Argon2.
+</Warning>
+
+### products
+
+Fabric products listed on the platform.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `name` | VARCHAR | Product name |
+| `price` | DECIMAL | Price in Colombian Pesos (COP) |
+| `stock` | INTEGER | Available quantity in meters |
+| `category_id` | UUID | Foreign key → `categories.id` |
+| `seller_id` | UUID | Foreign key → `users.id` (must be seller/admin) |
+| `description` | TEXT | Product description |
+| `material` | VARCHAR | Fabric material type |
+| `width` | DECIMAL | Fabric width in cm |
+| `weight` | DECIMAL | Fabric weight in g/m² |
+| `featured` | BOOLEAN | Whether to show in featured sections |
+| `created_at` | TIMESTAMP | Listing creation time |
+
+### orders
+
+Customer orders placed through checkout.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `user_id` | UUID | Foreign key → `users.id` (the client) |
+| `total_amount` | DECIMAL | Order total in COP including shipping and IVA |
+| `status` | VARCHAR | Order lifecycle status (see below) |
+| `created_at` | TIMESTAMP | When the order was placed |
+
+### Order status values
+
+| Status | Description |
+|--------|-------------|
+| `PENDING` | Order placed, awaiting processing |
+| `PAID` | Payment confirmed |
+| `SHIPPED` | Order handed to carrier |
+| `DELIVERED` | Order received by customer |
+| `CANCELLED` | Order cancelled |
+
+## Relationships
+
+```
+users (1) ─── (M) products     [one seller can have many products]
+users (1) ─── (M) orders       [one client can have many orders]
+products (M) ── (M) orders     [via order_items join table]
+```
+
+## Development credentials
+
+The database is seeded with the following demo accounts:
+
+| Email | Role | Password |
+|-------|------|----------|
+| `admin@ddtextil.com` | administrador | `admin123` |
+| `vendedor@ddtextil.com` | vendedor | `vendedor123` |
+| `maria.gonzalez@ddtextil.com` | vendedor | `vendedor123` |
+| `ana.martinez@ddtextil.com` | vendedor | `vendedor123` |
+| `cliente@ddtextil.com` | cliente | `cliente123` |
+| `laura.sanchez@email.com` | cliente | `cliente123` |
+
+## PostgreSQL connection
+
+The Spring Boot backend connects to PostgreSQL using JDBC. Configure the connection in `application.properties` or via environment variables:
+
+```properties application.properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/ddtextil
+spring.datasource.username=postgres
+spring.datasource.password=your_password
+spring.jpa.hibernate.ddl-auto=validate
+```
